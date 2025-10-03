@@ -1,6 +1,7 @@
 import { Timestamp } from '@google-cloud/firestore';
 
 export interface WatchData {
+    userId: string;
     calendarId: string;
     channelId: string;
     resourceId: string;
