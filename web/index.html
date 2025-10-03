@@ -166,10 +166,28 @@
         <div class="step hidden" id="step3">
             <h2>Step 3: Choose Target Calendar</h2>
             <p>Select where merged events should appear.</p>
-            <select id="targetCalendar">
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="radio" name="targetOption" value="existing" checked style="margin-right: 8px;">
+                    <span>Use existing calendar</span>
+                </label>
+            </div>
+
+            <select id="targetCalendar" style="margin-bottom: 15px;">
                 <option value="">Select target calendar...</option>
             </select>
-            <button class="btn" id="setupBtn" style="margin-top: 20px;" disabled>Start Syncing</button>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="radio" name="targetOption" value="new" style="margin-right: 8px;">
+                    <span>Create new calendar</span>
+                </label>
+            </div>
+
+            <input type="text" id="newCalendarName" placeholder="Enter new calendar name" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; display: none; margin-bottom: 15px;">
+
+            <button class="btn" id="setupBtn" disabled>Start Syncing</button>
             <div class="status" id="setupStatus"></div>
         </div>
     </div>
