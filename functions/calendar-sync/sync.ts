@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+import { google, calendar_v3 } from 'googleapis';
 import { Firestore, Timestamp } from '@google-cloud/firestore';
 import { getAuthClient } from './auth';
 import { EventMapping, WatchData } from './types';
@@ -37,7 +37,6 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
 
         // Fetch recent events from source calendar
         const response = await calendar.events.list({
-            auth,
             calendarId,
             timeMin: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Last 24 hours
             singleEvents: true,
@@ -51,7 +50,7 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
         for (const event of events) {
             if (!event.id) continue;
 
-            await syncEvent(calendarId, event.id, targetCalendarId, auth);
+            await syncEvent(calendarId, event.id, targetCalendarId, calendar);
         }
 
         console.log(`Sync complete for channel ${channelId}`);
@@ -68,7 +67,7 @@ async function syncEvent(
     sourceCalendarId: string,
     sourceEventId: string,
     targetCalendarId: string,
-    auth: any
+    calendarClient: calendar_v3.Calendar
 ): Promise<void> {
     try {
         // Check if event already has a mapping
@@ -80,8 +79,7 @@ async function syncEvent(
             .get();
 
         // Fetch the source event
-        const sourceEvent = await calendar.events.get({
-            auth,
+        const sourceEvent = await calendarClient.events.get({
             calendarId: sourceCalendarId,
             eventId: sourceEventId,
         });
@@ -96,7 +94,7 @@ async function syncEvent(
             // Delete from target if it exists
             if (!mappingQuery.empty) {
                 const mapping = mappingQuery.docs[0].data() as EventMapping;
-                await deleteTargetEvent(targetCalendarId, mapping.targetEventId, auth);
+                await deleteTargetEvent(targetCalendarId, mapping.targetEventId, calendarClient);
                 await mappingQuery.docs[0].ref.delete();
             }
             return;
@@ -116,8 +114,7 @@ async function syncEvent(
 
         if (mappingQuery.empty) {
             // Create new event in target calendar
-            const targetEvent = await calendar.events.insert({
-                auth,
+            const targetEvent = await calendarClient.events.insert({
                 calendarId: targetCalendarId,
                 requestBody: eventData,
             });
@@ -142,8 +139,7 @@ async function syncEvent(
             const mapping = mappingQuery.docs[0].data() as EventMapping;
             targetEventId = mapping.targetEventId;
 
-            await calendar.events.update({
-                auth,
+            await calendarClient.events.update({
                 calendarId: targetCalendarId,
                 eventId: targetEventId,
                 requestBody: eventData,
@@ -168,11 +164,10 @@ async function syncEvent(
 async function deleteTargetEvent(
     targetCalendarId: string,
     targetEventId: string,
-    auth: any
+    calendarClient: calendar_v3.Calendar
 ): Promise<void> {
     try {
-        await calendar.events.delete({
-            auth,
+        await calendarClient.events.delete({
             calendarId: targetCalendarId,
             eventId: targetEventId,
         });
