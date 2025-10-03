@@ -8,6 +8,9 @@
     "dev:server": "pnpm --filter calendar-sync-function run dev",
     "dev:client": "pnpm --filter calendar-merge-web run dev",
     "dev:renew": "pnpm --filter calendar-sync-function run dev:renew",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
     "auth:setup": "./scripts/use-gcloud-auth.sh",
     "deploy:handleWebhook": "source .env.gcp && gcloud functions deploy handleWebhook --gen2 --runtime=nodejs20 --region=$REGION --source=./functions/calendar-sync --entry-point=handleWebhook --trigger-http --allow-unauthenticated --service-account=$SERVICE_ACCOUNT_EMAIL --set-env-vars PROJECT_ID=$PROJECT_ID",
     "deploy:renewWatches": "source .env.gcp && gcloud functions deploy renewWatches --gen2 --runtime=nodejs20 --region=$REGION --source=./functions/calendar-sync --entry-point=renewWatches --trigger-http --service-account=$SERVICE_ACCOUNT_EMAIL --set-env-vars PROJECT_ID=$PROJECT_ID",
@@ -22,6 +25,9 @@
     "web"
   ],
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@types/node": "^24.6.2",
+    "@vitest/ui": "^3.2.4",
+    "concurrently": "^8.2.2",
+    "vitest": "^3.2.4"
   }
 }
