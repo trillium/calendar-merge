@@ -2,6 +2,15 @@
   "name": "calendar-merge-service",
   "private": true,
   "version": "1.0.0",
+  "scripts": {
+    "build": "pnpm --filter calendar-sync-function run gcp-build",
+    "deploy:handleWebhook": "source .env.gcp && gcloud functions deploy handleWebhook --gen2 --runtime=nodejs20 --region=$REGION --source=./functions/calendar-sync --entry-point=handleWebhook --trigger-http --allow-unauthenticated --service-account=$SERVICE_ACCOUNT_EMAIL --set-env-vars PROJECT_ID=$PROJECT_ID",
+    "deploy:renewWatches": "source .env.gcp && gcloud functions deploy renewWatches --gen2 --runtime=nodejs20 --region=$REGION --source=./functions/calendar-sync --entry-point=renewWatches --trigger-http --service-account=$SERVICE_ACCOUNT_EMAIL --set-env-vars PROJECT_ID=$PROJECT_ID",
+    "deploy:functions": "pnpm deploy:handleWebhook && pnpm deploy:renewWatches",
+    "deploy": "pnpm deploy:functions",
+    "build:deploy": "pnpm build && pnpm deploy",
+    "functions:list": "source .env.gcp && gcloud functions list --regions=$REGION"
+  },
   "workspaces": [
     "functions/*",
     "scripts"
