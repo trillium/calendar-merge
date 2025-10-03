@@ -79,17 +79,16 @@ describe('sync.ts', () => {
   });
 
   describe('syncCalendarEvents', () => {
-    it('should sync events from source to target calendar', async () => {
+    it('should sync events from source to target calendar with labels and privacy', async () => {
       const mockWatchData = {
         userId: 'user123',
-        calendarId: 'source-cal',
+        calendarId: 'user@example.com',
         targetCalendarId: 'target-cal',
         channelId: 'channel123',
       };
 
       const mockEvents = [
         { id: 'event1', summary: 'Test Event 1', start: { dateTime: '2025-10-04T10:00:00Z' } },
-        { id: 'event2', summary: 'Test Event 2', start: { dateTime: '2025-10-04T14:00:00Z' } },
       ];
 
       // Mock watch document
@@ -103,8 +102,8 @@ describe('sync.ts', () => {
         data: { items: mockEvents },
       });
 
-      // Mock event mapping queries (no existing mappings)
-      mockGet.mockResolvedValue({ empty: true, docs: [] });
+      // Mock event mapping document (no existing mapping)
+      mockGet.mockResolvedValue({ exists: false });
 
       // Mock event get
       mockCalendar.events.get.mockResolvedValueOnce({
@@ -114,16 +113,7 @@ describe('sync.ts', () => {
           start: { dateTime: '2025-10-04T10:00:00Z' },
           end: { dateTime: '2025-10-04T11:00:00Z' },
           status: 'confirmed',
-        },
-      });
-
-      mockCalendar.events.get.mockResolvedValueOnce({
-        data: {
-          id: 'event2',
-          summary: 'Test Event 2',
-          start: { dateTime: '2025-10-04T14:00:00Z' },
-          end: { dateTime: '2025-10-04T15:00:00Z' },
-          status: 'confirmed',
+          transparency: 'transparent',
         },
       });
 
@@ -134,15 +124,14 @@ describe('sync.ts', () => {
 
       await syncCalendarEvents('channel123');
 
-      expect(mockCalendar.events.list).toHaveBeenCalledWith({
-        calendarId: 'source-cal',
-        timeMin: expect.any(String),
-        singleEvents: true,
-        orderBy: 'startTime',
+      expect(mockCalendar.events.insert).toHaveBeenCalledWith({
+        calendarId: 'target-cal',
+        requestBody: expect.objectContaining({
+          summary: '[user] Test Event 1',
+          visibility: 'private',
+          transparency: 'transparent',
+        }),
       });
-
-      expect(mockCalendar.events.insert).toHaveBeenCalledTimes(2);
-      expect(mockAdd).toHaveBeenCalledTimes(2);
     });
 
     it('should return early if watch does not exist', async () => {
@@ -166,10 +155,10 @@ describe('sync.ts', () => {
       expect(mockCalendar.events.list).not.toHaveBeenCalled();
     });
 
-    it('should update existing events', async () => {
+    it('should update existing events without duplicating', async () => {
       const mockWatchData = {
         userId: 'user123',
-        calendarId: 'source-cal',
+        calendarId: 'user@example.com',
         targetCalendarId: 'target-cal',
         channelId: 'channel123',
       };
@@ -179,10 +168,12 @@ describe('sync.ts', () => {
       ];
 
       const mockMapping = {
-        sourceCalendarId: 'source-cal',
+        sourceCalendarId: 'user@example.com',
         sourceEventId: 'event1',
         targetEventId: 'target-event-1',
       };
+
+      const mockUpdateFn = vi.fn();
 
       // Mock watch document
       mockGet.mockResolvedValueOnce({
@@ -195,13 +186,11 @@ describe('sync.ts', () => {
         data: { items: mockEvents },
       });
 
-      // Mock existing event mapping
+      // Mock existing event mapping document (using composite key)
       mockGet.mockResolvedValueOnce({
-        empty: false,
-        docs: [{
-          data: () => mockMapping,
-          ref: { update: vi.fn() },
-        }],
+        exists: true,
+        data: () => mockMapping,
+        ref: { update: mockUpdateFn },
       });
 
       // Mock event get
@@ -212,18 +201,75 @@ describe('sync.ts', () => {
           start: { dateTime: '2025-10-04T10:00:00Z' },
           end: { dateTime: '2025-10-04T11:00:00Z' },
           status: 'confirmed',
+          transparency: 'opaque',
         },
       });
 
       await syncCalendarEvents('channel123');
 
+      // Should update, not insert
       expect(mockCalendar.events.update).toHaveBeenCalledWith({
         calendarId: 'target-cal',
         eventId: 'target-event-1',
         requestBody: expect.objectContaining({
-          summary: 'Updated Event',
+          summary: '[user] Updated Event',
+          visibility: 'private',
+          transparency: 'opaque',
         }),
       });
+      expect(mockCalendar.events.insert).not.toHaveBeenCalled();
+    });
+
+    it('should use composite key for mapping document ID', async () => {
+      const mockWatchData = {
+        userId: 'user123',
+        calendarId: 'test@example.com',
+        targetCalendarId: 'target-cal',
+        channelId: 'channel123',
+      };
+
+      const mockEvents = [
+        { id: 'event-abc', summary: 'Test', start: { dateTime: '2025-10-04T10:00:00Z' } },
+      ];
+
+      // Mock watch document
+      mockGet.mockResolvedValueOnce({
+        exists: true,
+        data: () => mockWatchData,
+      });
+
+      // Mock event list
+      mockCalendar.events.list.mockResolvedValue({
+        data: { items: mockEvents },
+      });
+
+      // Mock no existing mapping
+      mockGet.mockResolvedValue({ exists: false });
+
+      // Mock event get
+      mockCalendar.events.get.mockResolvedValue({
+        data: {
+          id: 'event-abc',
+          summary: 'Test',
+          start: { dateTime: '2025-10-04T10:00:00Z' },
+          end: { dateTime: '2025-10-04T11:00:00Z' },
+          status: 'confirmed',
+        },
+      });
+
+      // Mock event insert
+      mockCalendar.events.insert.mockResolvedValue({
+        data: { id: 'new-target-event' },
+      });
+
+      // Spy on Firestore set
+      const mockSet = vi.fn();
+      mockDoc.mockReturnValue({ get: mockGet, set: mockSet, ref: {} });
+
+      await syncCalendarEvents('channel123');
+
+      // Verify composite key was used: sourceCalendarId_sourceEventId
+      expect(mockDoc).toHaveBeenCalledWith('test@example.com_event-abc');
     });
 
     it('should delete cancelled events', async () => {
@@ -257,13 +303,11 @@ describe('sync.ts', () => {
         data: { items: mockEvents },
       });
 
-      // Mock existing event mapping
+      // Mock existing event mapping document (using composite key)
       mockGet.mockResolvedValueOnce({
-        empty: false,
-        docs: [{
-          data: () => mockMapping,
-          ref: mockDocRef,
-        }],
+        exists: true,
+        data: () => mockMapping,
+        ref: mockDocRef,
       });
 
       // Mock cancelled event

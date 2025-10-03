@@ -90,11 +90,13 @@ describe('watch.ts', () => {
         'target-cal'
       );
 
+      const expectedChannelId = Buffer.from('user123-calendar123-1234567890000').toString('base64');
+
       expect(authModule.getAuthClient).toHaveBeenCalledWith('user123');
       expect(mockCalendar.events.watch).toHaveBeenCalledWith({
         calendarId: 'calendar123',
         requestBody: {
-          id: 'user123-calendar123-1234567890000',
+          id: expectedChannelId,
           type: 'web_hook',
           address: 'https://example.com/webhook',
           expiration: expect.any(String),
@@ -104,7 +106,7 @@ describe('watch.ts', () => {
       expect(mockSet).toHaveBeenCalledWith({
         userId: 'user123',
         calendarId: 'calendar123',
-        channelId: 'user123-calendar123-1234567890000',
+        channelId: expectedChannelId,
         resourceId: 'resource-123',
         expiration: expect.any(Number),
         targetCalendarId: 'target-cal',

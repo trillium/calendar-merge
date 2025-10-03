@@ -70,12 +70,11 @@ async function syncEvent(
     calendarClient: calendar_v3.Calendar
 ): Promise<void> {
     try {
-        // Check if event already has a mapping
-        const mappingQuery = await firestore
+        // Use composite key as document ID to avoid need for Firestore index
+        const mappingId = `${sourceCalendarId}_${sourceEventId}`;
+        const mappingDoc = await firestore
             .collection(CONFIG.FIRESTORE_COLLECTIONS.EVENT_MAPPINGS)
-            .where('sourceCalendarId', '==', sourceCalendarId)
-            .where('sourceEventId', '==', sourceEventId)
-            .limit(1)
+            .doc(mappingId)
             .get();
 
         // Fetch the source event
@@ -92,27 +91,32 @@ async function syncEvent(
         // Check if event is cancelled
         if (sourceEvent.data.status === 'cancelled') {
             // Delete from target if it exists
-            if (!mappingQuery.empty) {
-                const mapping = mappingQuery.docs[0].data() as EventMapping;
+            if (mappingDoc.exists) {
+                const mapping = mappingDoc.data() as EventMapping;
                 await deleteTargetEvent(targetCalendarId, mapping.targetEventId, calendarClient);
-                await mappingQuery.docs[0].ref.delete();
+                await mappingDoc.ref.delete();
             }
             return;
         }
 
+        // Get calendar name for labeling
+        const calendarName = sourceCalendarId.split('@')[0];
+
         // Prepare event data for target calendar
         const eventData = {
-            summary: sourceEvent.data.summary,
+            summary: `[${calendarName}] ${sourceEvent.data.summary || '(No title)'}`,
             description: sourceEvent.data.description,
             start: sourceEvent.data.start,
             end: sourceEvent.data.end,
             location: sourceEvent.data.location,
             status: sourceEvent.data.status,
+            transparency: sourceEvent.data.transparency || 'opaque', // Preserve busy/free status
+            visibility: 'private', // Mark as private
         };
 
         let targetEventId: string;
 
-        if (mappingQuery.empty) {
+        if (!mappingDoc.exists) {
             // Create new event in target calendar
             const targetEvent = await calendarClient.events.insert({
                 calendarId: targetCalendarId,
@@ -121,7 +125,7 @@ async function syncEvent(
 
             targetEventId = targetEvent.data.id!;
 
-            // Create mapping
+            // Create mapping using composite key as document ID
             const mapping: EventMapping = {
                 sourceCalendarId,
                 sourceEventId,
@@ -131,12 +135,13 @@ async function syncEvent(
 
             await firestore
                 .collection(CONFIG.FIRESTORE_COLLECTIONS.EVENT_MAPPINGS)
-                .add(mapping);
+                .doc(mappingId)
+                .set(mapping);
 
             console.log(`Created new event ${targetEventId} in target calendar`);
         } else {
             // Update existing event
-            const mapping = mappingQuery.docs[0].data() as EventMapping;
+            const mapping = mappingDoc.data() as EventMapping;
             targetEventId = mapping.targetEventId;
 
             await calendarClient.events.update({
@@ -146,7 +151,7 @@ async function syncEvent(
             });
 
             // Update mapping timestamp
-            await mappingQuery.docs[0].ref.update({
+            await mappingDoc.ref.update({
                 lastSynced: Timestamp.now(),
             });
 
