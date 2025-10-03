@@ -1,0 +1,9 @@
+{
+  "name": "calendar-merge-service",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "functions/*",
+    "scripts"
+  ]
+}
