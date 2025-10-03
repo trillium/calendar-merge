@@ -5,9 +5,13 @@
   "main": "index.js",
   "dependencies": {
     "@google-cloud/firestore": "^7.0.0",
+    "express": "^5.1.0",
     "googleapis": "^128.0.0"
   },
   "engines": {
     "node": "20"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3"
   }
 }
