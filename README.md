@@ -13,34 +13,41 @@ Near real-time Google Calendar merge service using GCP serverless infrastructure
 ### Setup (First Time)
 
 ```bash
-# 1. Bootstrap infrastructure
-./scripts/setup-gcp.sh
+# 1. Set up GCP authentication and enable Calendar API
+pnpm auth:setup
 
-# 2. Deploy infrastructure with Terraform
-./scripts/deploy-infra.sh
-
-# 3. Deploy Cloud Functions
-./scripts/deploy-functions.sh
-
-# 4. Get OAuth token (one-time)
-./scripts/get-oauth-token.sh
-
-# 5. Test the setup
-./scripts/test-setup.sh
+# 2. Build and deploy to GCP
+pnpm build:deploy
 ```
 
-### Daily Development
+### Development Workflow
 
 ```bash
-# Deploy function changes
-./scripts/deploy-functions.sh
+# Local development
+pnpm dev              # Run handleWebhook locally (http://localhost:8080)
+pnpm dev:renew        # Run renewWatches locally
 
-# View logs
-./scripts/view-logs.sh
+# Build and deploy
+pnpm build            # Compile TypeScript
+pnpm deploy           # Deploy to GCP
+pnpm build:deploy     # Build and deploy in one command
 
-# Destroy everything (careful!)
-terraform destroy
+# Utilities
+pnpm functions:list   # List deployed functions
 ```
+
+### Authentication
+
+OAuth credentials are stored at:
+- **Local development**: `~/.config/gcloud/application_default_credentials.json`
+- **Production**: Secret Manager (`calendar-oauth-tokens`)
+
+The credentials include:
+- Google Calendar API access (read/write)
+- Event create, update, delete permissions
+- Watch subscription management
+
+To refresh credentials: `pnpm auth:setup`
 
 ## Architecture
 
