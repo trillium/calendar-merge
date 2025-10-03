@@ -19,9 +19,11 @@ app.post('/oauth/callback', (req: Request, res: Response) => handlers.oauthCallb
 app.post('/setup', (req: Request, res: Response) => handlers.setup(req, res));
 
 const PORT = process.env.PORT || 8080;
+const BUILD_TIME = new Date().toISOString();
 
 app.listen(PORT, () => {
     console.log(`\n🚀 Dev server running on http://localhost:${PORT}`);
+    console.log(`📦 Build time: ${BUILD_TIME}`);
     console.log(`\nEndpoints:`);
     console.log(`  POST /              - handleWebhook`);
     console.log(`  POST /renewWatches  - renewWatches`);

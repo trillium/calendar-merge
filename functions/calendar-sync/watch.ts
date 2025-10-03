@@ -18,7 +18,8 @@ export async function createCalendarWatch(
 ): Promise<void> {
     const auth = await getAuthClient(userId);
     const calendar = google.calendar({ version: 'v3', auth });
-    const channelId = `${userId}-${calendarId}-${Date.now()}`;
+    // Encode channel ID to only use allowed characters: [A-Za-z0-9\-_\+/=]+
+    const channelId = Buffer.from(`${userId}-${calendarId}-${Date.now()}`).toString('base64');
     const expiration = Date.now() + (CONFIG.WATCH_EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
 
     try {
