@@ -6,7 +6,9 @@
     "build": "pnpm --filter calendar-sync-function run gcp-build",
     "dev": "pnpm --filter calendar-sync-function run dev",
     "dev:renew": "pnpm --filter calendar-sync-function run dev:renew",
+    "dev:web": "pnpm --filter calendar-merge-web run dev",
     "auth:setup": "./scripts/use-gcloud-auth.sh",
+    "oauth:create": "./scripts/create-oauth-client.sh",
     "deploy:handleWebhook": "source .env.gcp && gcloud functions deploy handleWebhook --gen2 --runtime=nodejs20 --region=$REGION --source=./functions/calendar-sync --entry-point=handleWebhook --trigger-http --allow-unauthenticated --service-account=$SERVICE_ACCOUNT_EMAIL --set-env-vars PROJECT_ID=$PROJECT_ID",
     "deploy:renewWatches": "source .env.gcp && gcloud functions deploy renewWatches --gen2 --runtime=nodejs20 --region=$REGION --source=./functions/calendar-sync --entry-point=renewWatches --trigger-http --service-account=$SERVICE_ACCOUNT_EMAIL --set-env-vars PROJECT_ID=$PROJECT_ID",
     "deploy:functions": "pnpm deploy:handleWebhook && pnpm deploy:renewWatches",
@@ -16,6 +18,7 @@
   },
   "workspaces": [
     "functions/*",
-    "scripts"
+    "scripts",
+    "web"
   ]
 }
