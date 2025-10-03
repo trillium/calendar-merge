@@ -10,6 +10,13 @@ token.json
 node_modules/
 package-lock.json
 
+# Build output
+dist/
+*.js
+*.js.map
+# But keep config files
+!*.config.js
+
 # Terraform
 .terraform/
 *.tfstate
