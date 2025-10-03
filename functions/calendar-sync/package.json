@@ -2,7 +2,7 @@
   "name": "calendar-sync-function",
   "version": "1.0.0",
   "description": "Cloud Function for calendar merge service",
-  "main": "index.js",
+  "main": "index.ts",
   "dependencies": {
     "@google-cloud/firestore": "^7.0.0",
     "express": "^5.1.0",
@@ -12,6 +12,8 @@
     "node": "20"
   },
   "devDependencies": {
-    "@types/express": "^5.0.3"
+    "@types/express": "^5.0.3",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
   }
 }
