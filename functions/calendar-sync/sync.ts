@@ -25,7 +25,12 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
         }
 
         const watchData = watchDoc.data() as WatchData;
-        const { userId, calendarId, targetCalendarId } = watchData;
+        const { userId, calendarId, targetCalendarId, paused } = watchData;
+
+        if (paused) {
+            console.log(`Sync paused for channel ${channelId}`);
+            return;
+        }
 
         if (!targetCalendarId || !userId) {
             console.warn(`Missing configuration for ${calendarId}`);

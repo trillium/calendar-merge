@@ -7,6 +7,7 @@ export interface WatchData {
     resourceId: string;
     expiration: number;
     targetCalendarId?: string;
+    paused?: boolean;
 }
 
 export interface EventMapping {
