@@ -5,7 +5,6 @@ import { EventMapping, WatchData } from './types';
 import { CONFIG } from './config';
 
 const firestore = new Firestore();
-const calendar = google.calendar('v3');
 
 /**
  * Syncs calendar events when a webhook notification is received
@@ -26,14 +25,15 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
         }
 
         const watchData = watchDoc.data() as WatchData;
-        const { calendarId, targetCalendarId } = watchData;
+        const { userId, calendarId, targetCalendarId } = watchData;
 
-        if (!targetCalendarId) {
-            console.warn(`No target calendar configured for ${calendarId}`);
+        if (!targetCalendarId || !userId) {
+            console.warn(`Missing configuration for ${calendarId}`);
             return;
         }
 
-        const auth = await getAuthClient();
+        const auth = await getAuthClient(userId);
+        const calendar = google.calendar({ version: 'v3', auth });
 
         // Fetch recent events from source calendar
         const response = await calendar.events.list({
