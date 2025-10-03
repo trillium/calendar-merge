@@ -11,17 +11,18 @@ const calendar = google.calendar('v3');
  * Creates a new watch subscription for a calendar
  */
 export async function createCalendarWatch(
+    userId: string,
     calendarId: string,
     webhookUrl: string,
     targetCalendarId?: string
 ): Promise<void> {
-    const auth = await getAuthClient();
-    const channelId = `${calendarId}-${Date.now()}`;
+    const auth = await getAuthClient(userId);
+    const calendar = google.calendar({ version: 'v3', auth });
+    const channelId = `${userId}-${calendarId}-${Date.now()}`;
     const expiration = Date.now() + (CONFIG.WATCH_EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
 
     try {
         const response = await calendar.events.watch({
-            auth,
             calendarId,
             requestBody: {
                 id: channelId,
@@ -32,6 +33,7 @@ export async function createCalendarWatch(
         });
 
         const watchData: WatchData = {
+            userId,
             calendarId,
             channelId,
             resourceId: response.data.resourceId || '',
@@ -71,11 +73,11 @@ export async function renewCalendarWatch(calendarId: string, watchId: string): P
         const watchData = watchDoc.data() as WatchData;
 
         // Stop the old watch
-        await stopCalendarWatch(watchData.channelId, watchData.resourceId);
+        await stopCalendarWatch(watchData.userId, watchData.channelId, watchData.resourceId);
 
         // Create a new watch with the same configuration
         const webhookUrl = process.env.WEBHOOK_URL || '';
-        await createCalendarWatch(calendarId, webhookUrl, watchData.targetCalendarId);
+        await createCalendarWatch(watchData.userId, calendarId, webhookUrl, watchData.targetCalendarId);
 
         // Delete the old watch document
         await watchDoc.ref.delete();
@@ -90,8 +92,9 @@ export async function renewCalendarWatch(calendarId: string, watchId: string): P
 /**
  * Stops a watch subscription
  */
-export async function stopCalendarWatch(channelId: string, resourceId: string): Promise<void> {
-    const auth = await getAuthClient();
+export async function stopCalendarWatch(userId: string, channelId: string, resourceId: string): Promise<void> {
+    const auth = await getAuthClient(userId);
+    const calendar = google.calendar({ version: 'v3', auth });
 
     try {
         await calendar.channels.stop({
