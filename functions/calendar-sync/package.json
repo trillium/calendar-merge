@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "gcp-build": "tsc",
-    "dev": "tsc && node dev-server.js",
+    "dev": "tsc && node dist/dev-server.js",
     "dev:framework": "tsc && functions-framework --target=handleWebhook --source=dist",
     "dev:renew": "tsc && functions-framework --target=renewWatches --source=dist"
   },
@@ -24,6 +24,7 @@
     "@types/cors": "^2.8.0",
     "@types/express": "^5.0.3",
     "@types/node": "^20.0.0",
+    "dotenv": "^16.0.0",
     "typescript": "^5.0.0"
   }
 }
