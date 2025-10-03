@@ -4,6 +4,8 @@ credentials.json
 token.json
 .env
 .env.gcp
+.env.local
+.env.development
 *.tfvars
 
 # Dependencies
