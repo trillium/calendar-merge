@@ -13,6 +13,9 @@ importers:
       '@google-cloud/firestore':
         specifier: ^7.0.0
         version: 7.11.6
+      '@google-cloud/secret-manager':
+        specifier: ^5.0.0
+        version: 5.6.0
       express:
         specifier: ^5.1.0
         version: 5.1.0
@@ -47,6 +50,10 @@ packages:
 
   '@google-cloud/firestore@7.11.6':
     resolution: {integrity: sha512-EW/O8ktzwLfyWBOsNuhRoMi8lrC3clHM5LVFhGvO1HCsLozCOOXRAlHrYBoE6HL42Sc8yYMuCb2XqcnJ4OOEpw==}
+    engines: {node: '>=14.0.0'}
+
+  '@google-cloud/secret-manager@5.6.0':
+    resolution: {integrity: sha512-0daW/OXQEVc6VQKPyJTQNyD+563I/TYQ7GCQJx4dq3lB666R9FUPvqHx9b/o/qQtZ5pfuoCbGZl3krpxgTSW8Q==}
     engines: {node: '>=14.0.0'}
 
   '@grpc/grpc-js@1.14.0':
@@ -742,6 +749,13 @@ snapshots:
       functional-red-black-tree: 1.0.1
       google-gax: 4.6.1
       protobufjs: 7.5.4
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
+
+  '@google-cloud/secret-manager@5.6.0':
+    dependencies:
+      google-gax: 4.6.1
     transitivePeerDependencies:
       - encoding
       - supports-color
