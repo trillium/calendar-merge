@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Firestore } from '@google-cloud/firestore';
 import { syncCalendarEvents } from './sync';
 import { renewCalendarWatch } from './watch';
+import { oauthStart, oauthCallback, setup } from './oauth';
 import { CONFIG } from './config';
 
 const firestore = new Firestore();
@@ -52,3 +53,8 @@ export const renewWatches = async (req: Request, res: Response): Promise<void> =
         res.status(500).send('Error renewing watches');
     }
 };
+
+/**
+ * HTTP Cloud Function - OAuth Start
+ */
+export { oauthStart, oauthCallback, setup };
