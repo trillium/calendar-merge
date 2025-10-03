@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import { Firestore } from '@google-cloud/firestore';
-import { google } from 'googleapis';
+import { syncCalendarEvents } from './sync';
+import { renewCalendarWatch } from './watch';
+import { CONFIG } from './config';
 
 const firestore = new Firestore();
-const calendar = google.calendar('v3');
 
 /**
  * HTTP Cloud Function - Calendar Webhook Handler
@@ -36,7 +37,9 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
  */
 export const renewWatches = async (req: Request, res: Response): Promise<void> => {
     try {
-        const watchesSnapshot = await firestore.collection('watches').get();
+        const watchesSnapshot = await firestore
+            .collection(CONFIG.FIRESTORE_COLLECTIONS.WATCHES)
+            .get();
 
         for (const doc of watchesSnapshot.docs) {
             const watch = doc.data();
@@ -49,13 +52,3 @@ export const renewWatches = async (req: Request, res: Response): Promise<void> =
         res.status(500).send('Error renewing watches');
     }
 };
-
-async function syncCalendarEvents(channelId: string): Promise<void> {
-    console.log(`Syncing events for channel ${channelId}`);
-    // TODO: Implement event sync logic
-}
-
-async function renewCalendarWatch(calendarId: string, watchId: string): Promise<void> {
-    console.log(`Renewing watch for calendar ${calendarId}`);
-    // TODO: Implement watch renewal logic
-}
