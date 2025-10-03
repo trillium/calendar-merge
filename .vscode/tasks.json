@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Deploy Functions",
+      "type": "shell",
+      "command": "./scripts/deploy-functions.sh",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "View Logs",
+      "type": "shell",
+      "command": "./scripts/view-logs.sh"
+    },
+    {
+      "label": "Test Setup",
+      "type": "shell",
+      "command": "./scripts/test-setup.sh"
+    }
+  ]
+}

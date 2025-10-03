@@ -1,0 +1,29 @@
+# Secrets and credentials
+service-account-key.json
+credentials.json
+token.json
+.env
+.env.gcp
+*.tfvars
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+tfplan
+.terraform.lock.hcl
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Logs
+*.log
