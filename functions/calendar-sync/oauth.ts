@@ -3,6 +3,7 @@ import { google } from 'googleapis';
 import { Firestore } from '@google-cloud/firestore';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { CONFIG } from './config';
+import { createCalendarWatch } from './watch';
 
 const firestore = new Firestore();
 const secretManager = new SecretManagerServiceClient();
@@ -128,43 +129,12 @@ export const setup = async (req: Request, res: Response): Promise<void> => {
             });
 
         // Create watch subscriptions
-        const oauth2Client = new google.auth.OAuth2();
-        oauth2Client.setCredentials(userData.tokens);
-
-        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
         const webhookUrl = process.env.WEBHOOK_URL || '';
-
         let watchesCreated = 0;
 
         for (const calendarId of sourceCalendars) {
             try {
-                const channelId = `${userId}-${calendarId}-${Date.now()}`;
-                const expiration = Date.now() + (7 * 24 * 60 * 60 * 1000); // 7 days
-
-                const response = await calendar.events.watch({
-                    calendarId,
-                    requestBody: {
-                        id: channelId,
-                        type: 'web_hook',
-                        address: webhookUrl,
-                        expiration: expiration.toString()
-                    }
-                });
-
-                // Store watch data
-                await firestore
-                    .collection(CONFIG.FIRESTORE_COLLECTIONS.WATCHES)
-                    .doc(channelId)
-                    .set({
-                        userId,
-                        calendarId,
-                        channelId,
-                        resourceId: response.data.resourceId || '',
-                        expiration,
-                        targetCalendarId: targetCalendar,
-                        createdAt: new Date()
-                    });
-
+                await createCalendarWatch(userId, calendarId, webhookUrl, targetCalendar);
                 watchesCreated++;
             } catch (error) {
                 console.error(`Failed to create watch for ${calendarId}:`, error);
