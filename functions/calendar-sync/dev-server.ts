@@ -1,6 +1,10 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import * as handlers from './index.js';
+
+// Load environment variables from .env.local
+dotenv.config({ path: '../../.env.local' });
 
 const app = express();
 
