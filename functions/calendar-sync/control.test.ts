@@ -6,6 +6,11 @@ import * as authModule from './auth';
 import * as watchModule from './watch';
 import { Request, Response } from 'express';
 
+// Mock batch functions at module level
+const mockBatchUpdate = vi.fn();
+const mockBatchDelete = vi.fn();
+const mockBatchCommit = vi.fn().mockResolvedValue(undefined);
+
 // Mock Firestore
 vi.mock('@google-cloud/firestore', () => {
   const mockUpdate = vi.fn();
@@ -19,6 +24,11 @@ vi.mock('@google-cloud/firestore', () => {
   return {
     Firestore: vi.fn(() => ({
       collection: mockCollection,
+      batch: () => ({
+        update: mockBatchUpdate,
+        delete: mockBatchDelete,
+        commit: mockBatchCommit,
+      }),
     })),
   };
 });
@@ -109,19 +119,12 @@ describe('control.ts', () => {
         docs: mockDocs,
       });
 
-      const mockBatch = {
-        update: vi.fn(),
-        commit: vi.fn().mockResolvedValue(undefined),
-      };
-
-      mockFirestore.batch = vi.fn().mockReturnValue(mockBatch);
-
       await pauseSync(mockReq as Request, mockRes as Response);
 
       expect(mockWhere).toHaveBeenCalledWith('userId', '==', 'user123');
-      expect(mockBatch.update).toHaveBeenCalledTimes(2);
-      expect(mockBatch.update).toHaveBeenCalledWith(mockDocs[0].ref, { paused: true });
-      expect(mockBatch.commit).toHaveBeenCalled();
+      expect(mockBatchUpdate).toHaveBeenCalledTimes(2);
+      expect(mockBatchUpdate).toHaveBeenCalledWith(mockDocs[0].ref, { paused: true });
+      expect(mockBatchCommit).toHaveBeenCalled();
       expect(jsonSpy).toHaveBeenCalledWith({
         success: true,
         message: 'Paused 2 watch(es) for user user123',
@@ -151,16 +154,9 @@ describe('control.ts', () => {
         docs: mockDocs,
       });
 
-      const mockBatch = {
-        update: vi.fn(),
-        commit: vi.fn().mockResolvedValue(undefined),
-      };
-
-      mockFirestore.batch = vi.fn().mockReturnValue(mockBatch);
-
       await resumeSync(mockReq as Request, mockRes as Response);
 
-      expect(mockBatch.update).toHaveBeenCalledWith(mockDocs[0].ref, { paused: false });
+      expect(mockBatchUpdate).toHaveBeenCalledWith(mockDocs[0].ref, { paused: false });
       expect(jsonSpy).toHaveBeenCalledWith({
         success: true,
         message: 'Resumed 1 watch(es) for user user123',
@@ -236,13 +232,6 @@ describe('control.ts', () => {
         .mockResolvedValueOnce({ docs: mockWatchDocs })
         .mockResolvedValueOnce({ docs: mockMappingDocs });
 
-      const mockBatch = {
-        delete: vi.fn(),
-        commit: vi.fn().mockResolvedValue(undefined),
-      };
-
-      mockFirestore.batch = vi.fn().mockReturnValue(mockBatch);
-
       await clearUserData(mockReq as Request, mockRes as Response);
 
       expect(mockCalendar.channels.stop).toHaveBeenCalledWith({
@@ -252,8 +241,8 @@ describe('control.ts', () => {
         },
       });
       expect(mockWatchDocs[0].ref.delete).toHaveBeenCalled();
-      expect(mockBatch.delete).toHaveBeenCalledTimes(1); // Only trillium's mapping
-      expect(mockBatch.delete).toHaveBeenCalledWith(mockMappingDocs[0].ref);
+      expect(mockBatchDelete).toHaveBeenCalledTimes(1); // Only trillium's mapping
+      expect(mockBatchDelete).toHaveBeenCalledWith(mockMappingDocs[0].ref);
       expect(jsonSpy).toHaveBeenCalledWith({
         success: true,
         message: 'Cleared data for user trillium@example.com: deleted 1 watch(es) and 1 event mapping(s). OAuth tokens preserved.',
