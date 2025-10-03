@@ -103,14 +103,17 @@ async function syncEvent(
         const calendarName = sourceCalendarId.split('@')[0];
 
         // Prepare event data for target calendar
+        const transparency = sourceEvent.data.transparency || 'opaque';
+        const busyStatus = transparency === 'transparent' ? 'free' : 'busy';
+
         const eventData = {
-            summary: `[${calendarName}] ${sourceEvent.data.summary || '(No title)'}`,
+            summary: `[${calendarName}] ${sourceEvent.data.summary || '(No title)'} - ${busyStatus}`,
             description: sourceEvent.data.description,
             start: sourceEvent.data.start,
             end: sourceEvent.data.end,
             location: sourceEvent.data.location,
             status: sourceEvent.data.status,
-            transparency: sourceEvent.data.transparency || 'opaque', // Preserve busy/free status
+            transparency, // Preserve busy/free status
             visibility: 'private', // Mark as private
         };
 

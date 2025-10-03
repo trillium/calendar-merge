@@ -127,7 +127,7 @@ describe('sync.ts', () => {
       expect(mockCalendar.events.insert).toHaveBeenCalledWith({
         calendarId: 'target-cal',
         requestBody: expect.objectContaining({
-          summary: '[user] Test Event 1',
+          summary: '[user] Test Event 1 - free',
           visibility: 'private',
           transparency: 'transparent',
         }),
@@ -212,7 +212,7 @@ describe('sync.ts', () => {
         calendarId: 'target-cal',
         eventId: 'target-event-1',
         requestBody: expect.objectContaining({
-          summary: '[user] Updated Event',
+          summary: '[user] Updated Event - busy',
           visibility: 'private',
           transparency: 'opaque',
         }),
