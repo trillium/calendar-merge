@@ -8,7 +8,7 @@
     "dev:server": "pnpm --filter calendar-sync-function run dev",
     "dev:client": "pnpm --filter calendar-merge-web run dev",
     "dev:renew": "pnpm --filter calendar-sync-function run dev:renew",
-    "test": "vitest",
+    "test": "vitest --run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "auth:setup": "./scripts/use-gcloud-auth.sh",
