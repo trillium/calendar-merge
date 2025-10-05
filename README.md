@@ -26,8 +26,9 @@ pnpm build:deploy
 # Local development
 pnpm dev              # Run handleWebhook locally (http://localhost:8080)
 pnpm dev:renew        # Run renewWatches locally
+pnpm test             # Run test suite
 
-# Build and deploy
+# Manual deployment
 pnpm build            # Compile TypeScript
 pnpm deploy           # Deploy to GCP
 pnpm build:deploy     # Build and deploy in one command
@@ -35,6 +36,20 @@ pnpm build:deploy     # Build and deploy in one command
 # Utilities
 pnpm functions:list   # List deployed functions
 ```
+
+### CI/CD (Automatic Deployment)
+
+**Setup once:**
+```bash
+./scripts/setup-github-actions.sh
+# Follow prompts to add secrets to GitHub
+```
+
+**Then just:**
+- Push to any branch → Tests run automatically ✅
+- Merge to `main` → Auto-deploy to GCP 🚀
+
+See: [CI/CD Quick Start](docs/CI-CD-QUICK-START.md)
 
 ### Authentication
 
