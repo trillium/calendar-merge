@@ -14,10 +14,35 @@ env:
   SERVICE_ACCOUNT_EMAIL: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
 
 jobs:
-  # Run tests on every push and PR
+  # Detect what changed
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for file changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'functions/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+            frontend:
+              - 'web/**'
+
+  # Run tests on backend changes
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
 
     steps:
       - name: Checkout code
@@ -43,12 +68,15 @@ jobs:
       - name: Build
         run: pnpm build
 
-  # Deploy to GCP only on main branch after tests pass
+  # Deploy to GCP only on main branch after tests pass and if backend changed
   deploy:
     name: Deploy to GCP
     runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [changes, test]
+    if: |
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      needs.changes.outputs.backend == 'true'
 
     steps:
       - name: Checkout code
