@@ -76,6 +76,9 @@ importers:
 
   web:
     devDependencies:
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
       vite:
         specifier: ^5.0.0
         version: 5.4.20(@types/node@24.6.2)
