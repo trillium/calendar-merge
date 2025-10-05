@@ -118,6 +118,7 @@ jobs:
             --source=./functions/calendar-sync \
             --entry-point=handleWebhook \
             --trigger-http \
+            --allow-unauthenticated \
             --service-account=${{ env.SERVICE_ACCOUNT_EMAIL }} \
             --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }}
 
@@ -130,8 +131,28 @@ jobs:
             --source=./functions/calendar-sync \
             --entry-point=renewWatches \
             --trigger-http \
+            --allow-unauthenticated \
             --service-account=${{ env.SERVICE_ACCOUNT_EMAIL }} \
             --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }}
+
+      - name: Deploy api function
+        run: |
+          gcloud functions deploy api \
+            --gen2 \
+            --runtime=nodejs20 \
+            --region=${{ env.REGION }} \
+            --source=./functions/calendar-sync \
+            --entry-point=api \
+            --trigger-http \
+            --allow-unauthenticated \
+            --service-account=${{ env.SERVICE_ACCOUNT_EMAIL }} \
+            --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }}
+
+      - name: Get function URLs
+        run: |
+          API_URL=$(gcloud functions describe api --region=${{ env.REGION }} --gen2 --format='value(serviceConfig.uri)')
+          echo "🌐 API Gateway URL: $API_URL"
+          echo "Use this URL as VITE_API_URL in Vercel environment variables"
 
       - name: Deployment summary
         run: |

@@ -55,11 +55,6 @@ export const renewWatches = async (req: Request, res: Response): Promise<void> =
 };
 
 /**
- * HTTP Cloud Function - OAuth Start
+ * HTTP Cloud Function - Main API Gateway (OAuth + Control endpoints)
  */
-export { oauthStart, oauthCallback, setup };
-
-/**
- * HTTP Cloud Functions - Sync Control
- */
-export { pauseSync, resumeSync, stopSync, restartSync, clearUserData } from './control';
+export { api } from './api';
