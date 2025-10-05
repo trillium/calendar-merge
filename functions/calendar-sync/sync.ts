@@ -25,7 +25,7 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
         }
 
         const watchData = watchDoc.data() as WatchData;
-        const { userId, calendarId, targetCalendarId, paused } = watchData;
+        const { userId, calendarId, targetCalendarId, paused, syncToken } = watchData;
 
         if (paused) {
             console.log(`Sync paused for channel ${channelId}`);
@@ -40,22 +40,63 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
         const auth = await getAuthClient(userId);
         const calendar = google.calendar({ version: 'v3', auth });
 
-        // Fetch recent events from source calendar
-        const response = await calendar.events.list({
-            calendarId,
-            timeMin: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Last 24 hours
-            singleEvents: true,
-            orderBy: 'startTime',
-        });
+        let events: calendar_v3.Schema$Event[] = [];
+        let newSyncToken: string | null | undefined = null;
 
-        const events = response.data.items || [];
-        console.log(`Found ${events.length} events to sync`);
+        try {
+            if (syncToken) {
+                // Incremental sync using syncToken
+                console.log(`Using syncToken for incremental sync`);
+                const response = await calendar.events.list({
+                    calendarId,
+                    syncToken,
+                });
+
+                events = response.data.items || [];
+                newSyncToken = response.data.nextSyncToken;
+                console.log(`Incremental sync: Found ${events.length} changed events`);
+            } else {
+                // Initial full sync - no syncToken available
+                console.log(`No syncToken found, performing initial full sync`);
+                const response = await calendar.events.list({
+                    calendarId,
+                    maxResults: 2500,
+                    singleEvents: true,
+                });
+
+                events = response.data.items || [];
+                newSyncToken = response.data.nextSyncToken;
+                console.log(`Full sync: Found ${events.length} events`);
+            }
+        } catch (error: any) {
+            // Handle expired syncToken (410 Gone)
+            if (error.code === 410) {
+                console.log(`SyncToken expired, performing full resync`);
+                const response = await calendar.events.list({
+                    calendarId,
+                    maxResults: 2500,
+                    singleEvents: true,
+                });
+
+                events = response.data.items || [];
+                newSyncToken = response.data.nextSyncToken;
+                console.log(`Full resync: Found ${events.length} events`);
+            } else {
+                throw error;
+            }
+        }
 
         // Process each event
         for (const event of events) {
             if (!event.id) continue;
 
             await syncEvent(calendarId, event.id, targetCalendarId, calendar);
+        }
+
+        // Save the new syncToken for next time
+        if (newSyncToken) {
+            await watchDoc.ref.update({ syncToken: newSyncToken });
+            console.log(`Saved new syncToken for channel ${channelId}`);
         }
 
         console.log(`Sync complete for channel ${channelId}`);

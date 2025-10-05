@@ -23,6 +23,18 @@ export async function createCalendarWatch(
     const expiration = Date.now() + (CONFIG.WATCH_EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
 
     try {
+        // Perform initial sync to get syncToken
+        console.log(`Performing initial sync for calendar ${calendarId}`);
+        const initialSync = await calendar.events.list({
+            calendarId,
+            maxResults: 2500,
+            singleEvents: true,
+        });
+
+        const initialSyncToken = initialSync.data.nextSyncToken;
+        console.log(`Initial sync complete: ${initialSync.data.items?.length || 0} events, syncToken obtained`);
+
+        // Create watch subscription
         const response = await calendar.events.watch({
             calendarId,
             requestBody: {
@@ -40,6 +52,7 @@ export async function createCalendarWatch(
             resourceId: response.data.resourceId || '',
             expiration,
             targetCalendarId,
+            syncToken: initialSyncToken,
         };
 
         await firestore
