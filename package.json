@@ -20,6 +20,7 @@
     "build:deploy": "pnpm build && pnpm deploy",
     "deploy:full": "pnpm build && pnpm deploy:functions && pnpm frontend:deploy",
     "frontend:deploy": "./scripts/setup-vercel-env.sh",
+    "github:update-secrets:gcp": "./scripts/github-update-secrets.sh",
     "functions:list": "source .env.gcp && gcloud functions list --regions=$REGION",
     "api:url": "./scripts/get-api-url.sh"
   },
