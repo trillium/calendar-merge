@@ -17,8 +17,10 @@ package-lock.json
 dist/
 *.js
 *.js.map
-# But keep config files
+# But keep config files and web source files
 !*.config.js
+!web/src/*.js
+!web/src/*.ts
 
 # Terraform
 .terraform/
