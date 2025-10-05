@@ -38,3 +38,6 @@ Thumbs.db
 # Logs
 *.log
 .vercel
+-e 
+.env.local.bak
+client_secret.json
