@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gcloud:*)"
+      "Bash(gcloud:*)",
+      "Bash(pnpm test:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []

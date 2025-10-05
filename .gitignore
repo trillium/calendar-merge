@@ -1,5 +1,6 @@
 # Secrets and credentials
 service-account-key.json
+github-actions-key.json
 credentials.json
 token.json
 .env
