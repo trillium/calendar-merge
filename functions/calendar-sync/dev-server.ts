@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+// @ts-ignore - compiled from index.ts
 import * as handlers from './index.js';
 
 // Load environment variables from .env.local
@@ -23,7 +24,7 @@ app.post('/stop', (req: Request, res: Response) => handlers.stopSync(req, res));
 app.post('/clear', (req: Request, res: Response) => handlers.clearUserData(req, res));
 app.post('/restart', (req: Request, res: Response) => handlers.restartSync(req, res));
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 const BUILD_TIME = new Date().toISOString();
 
 app.listen(PORT, () => {
