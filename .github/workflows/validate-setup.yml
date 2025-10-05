@@ -1,9 +1,9 @@
 name: Validate CI/CD Setup
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch: # Manual trigger
   schedule:
-    - cron: '0 9 * * 1'  # Weekly on Monday at 9 AM UTC
+    - cron: "0 9 * * 1" # Weekly on Monday at 9 AM UTC
 
 env:
   NODE_VERSION: "20"
@@ -23,30 +23,30 @@ jobs:
       - name: Validate GitHub Secrets
         run: |
           echo "🔍 Validating GitHub repository secrets..."
-          
+
           # Check required secrets exist (they'll be empty if missing)
           MISSING_SECRETS=()
-          
+
           if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
             MISSING_SECRETS+=("GCP_PROJECT_ID")
           fi
-          
+
           if [ -z "${{ secrets.GCP_REGION }}" ]; then
             MISSING_SECRETS+=("GCP_REGION")
           fi
-          
+
           if [ -z "${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}" ]; then
             MISSING_SECRETS+=("GCP_SERVICE_ACCOUNT_EMAIL")
           fi
-          
+
           if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
             MISSING_SECRETS+=("GCP_SA_KEY")
           fi
-          
+
           if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
             MISSING_SECRETS+=("VERCEL_TOKEN")
           fi
-          
+
           if [ ${#MISSING_SECRETS[@]} -eq 0 ]; then
             echo "✅ All required secrets are present!"
           else
@@ -61,25 +61,25 @@ jobs:
       - name: Validate Secret Values
         run: |
           echo "🔍 Validating secret values..."
-          
+
           # Check GCP Project ID format
           if [[ ! "${{ env.PROJECT_ID }}" =~ ^[a-z][a-z0-9-]*[a-z0-9]$ ]]; then
             echo "❌ GCP_PROJECT_ID has invalid format: ${{ env.PROJECT_ID }}"
             exit 1
           fi
-          
+
           # Check GCP Region format
           if [[ ! "${{ env.REGION }}" =~ ^[a-z]+-[a-z]+[0-9]+$ ]]; then
             echo "❌ GCP_REGION has invalid format: ${{ env.REGION }}"
             exit 1
           fi
-          
+
           # Check Service Account Email format
           if [[ ! "${{ env.SERVICE_ACCOUNT_EMAIL }}" =~ ^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.iam\.gserviceaccount\.com$ ]]; then
             echo "❌ GCP_SERVICE_ACCOUNT_EMAIL has invalid format: ${{ env.SERVICE_ACCOUNT_EMAIL }}"
             exit 1
           fi
-          
+
           echo "✅ Secret values have valid formats!"
 
       - name: Test Google Cloud Authentication
@@ -95,22 +95,22 @@ jobs:
       - name: Test GCP Access
         run: |
           echo "🔍 Testing Google Cloud access..."
-          
+
           # Test basic gcloud access
           gcloud auth list --filter=status:ACTIVE --format="value(account)"
-          
+
           # Test project access
           gcloud config get-value project
-          
+
           # Test Cloud Functions API access
           gcloud services list --filter="name:cloudfunctions.googleapis.com" --format="value(name)" || {
             echo "❌ Cloud Functions API not enabled or accessible"
             exit 1
           }
-          
+
           # Test if service account has required permissions
           gcloud projects get-iam-policy ${{ env.PROJECT_ID }} --flatten="bindings[].members" --filter="bindings.members:serviceAccount:${{ env.SERVICE_ACCOUNT_EMAIL }}" --format="value(bindings.role)" | head -5
-          
+
           echo "✅ Google Cloud access working!"
 
       - name: Test Node.js Setup
@@ -121,25 +121,25 @@ jobs:
       - name: Test Vercel CLI
         run: |
           echo "🔍 Testing Vercel access..."
-          
+
           # Install Vercel CLI
           npm install -g vercel
-          
+
           # Test Vercel authentication (this will fail if token is invalid)
           vercel --token=${{ secrets.VERCEL_TOKEN }} --version
-          
+
           # Test if we can list teams/projects (validates token permissions)
           vercel teams ls --token=${{ secrets.VERCEL_TOKEN }} || {
             echo "❌ Vercel token invalid or insufficient permissions"
             exit 1
           }
-          
+
           echo "✅ Vercel access working!"
 
       - name: Validate Project Structure
         run: |
           echo "🔍 Validating project structure..."
-          
+
           # Check required files exist
           REQUIRED_FILES=(
             "functions/calendar-sync/package.json"
@@ -147,19 +147,19 @@ jobs:
             "functions/calendar-sync/api.ts"
             "web/package.json"
             "web/index.html"
-            "web/src/main.js"
+            "web/src/main.ts"
             "scripts/deploy/deploy-api.sh"
             "scripts/deploy/deploy-handleWebhook.sh"
             "scripts/deploy/deploy-renewWatches.sh"
           )
-          
+
           MISSING_FILES=()
           for file in "${REQUIRED_FILES[@]}"; do
             if [ ! -f "$file" ]; then
               MISSING_FILES+=("$file")
             fi
           done
-          
+
           if [ ${#MISSING_FILES[@]} -eq 0 ]; then
             echo "✅ All required project files are present!"
           else
@@ -171,24 +171,24 @@ jobs:
       - name: Test Build Process
         run: |
           echo "🔍 Testing build process..."
-          
+
           # Test function build
           cd functions/calendar-sync
           npm install
           npm run gcp-build
-          
+
           # Check if dist folder was created
           if [ ! -d "dist" ]; then
             echo "❌ Build failed - no dist folder created"
             exit 1
           fi
-          
+
           # Check if main files were compiled
           if [ ! -f "dist/index.js" ] || [ ! -f "dist/api.js" ]; then
             echo "❌ Build incomplete - missing compiled files"
             exit 1
           fi
-          
+
           echo "✅ Build process working!"
 
       - name: Validation Summary
