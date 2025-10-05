@@ -70,8 +70,8 @@ export const api = async (req: Request, res: Response): Promise<void> => {
         }
 
         // 404 for unknown routes
-        res.status(404).json({ 
-            error: 'Not Found', 
+        res.status(404).json({
+            error: 'Not Found',
             path,
             method,
             message: 'API endpoint not found'
@@ -79,7 +79,7 @@ export const api = async (req: Request, res: Response): Promise<void> => {
 
     } catch (error) {
         console.error('API Gateway error:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Internal Server Error',
             message: 'An unexpected error occurred'
         });
