@@ -215,11 +215,11 @@ jobs:
         working-directory: ./web
         run: |
           echo "🚀 Deploying frontend to Vercel..."
-          
+
           # Set environment variable in Vercel
           echo "${{ steps.get-api-url.outputs.api_url }}" | vercel env add VITE_API_URL production --token=${{ secrets.VERCEL_TOKEN }}
-          
+
           # Deploy to production
           vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
-          
+
           echo "✅ Frontend deployment complete!"
