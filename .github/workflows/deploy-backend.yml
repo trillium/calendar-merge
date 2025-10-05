@@ -1,0 +1,101 @@
+name: Deploy Backend to GCP
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  NODE_VERSION: "20"
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: ${{ secrets.GCP_REGION }}
+  SERVICE_ACCOUNT_EMAIL: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+jobs:
+  deploy:
+    name: Deploy Cloud Functions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build functions
+        run: pnpm build
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Deploy handleWebhook function
+        run: |
+          gcloud functions deploy handleWebhook \
+            --gen2 \
+            --runtime=nodejs20 \
+            --region=${{ env.REGION }} \
+            --source=./functions/calendar-sync \
+            --entry-point=handleWebhook \
+            --trigger-http \
+            --allow-unauthenticated \
+            --service-account=${{ env.SERVICE_ACCOUNT_EMAIL }} \
+            --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+
+      - name: Deploy renewWatches function
+        run: |
+          gcloud functions deploy renewWatches \
+            --gen2 \
+            --runtime=nodejs20 \
+            --region=${{ env.REGION }} \
+            --source=./functions/calendar-sync \
+            --entry-point=renewWatches \
+            --trigger-http \
+            --allow-unauthenticated \
+            --service-account=${{ env.SERVICE_ACCOUNT_EMAIL }} \
+            --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+
+      - name: Deploy api function
+        run: |
+          gcloud functions deploy api \
+            --gen2 \
+            --runtime=nodejs20 \
+            --region=${{ env.REGION }} \
+            --source=./functions/calendar-sync \
+            --entry-point=api \
+            --trigger-http \
+            --allow-unauthenticated \
+            --service-account=${{ env.SERVICE_ACCOUNT_EMAIL }} \
+            --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+
+      - name: Get function URLs
+        id: get-urls
+        run: |
+          API_URL=$(gcloud functions describe api --region=${{ env.REGION }} --gen2 --format='value(serviceConfig.uri)')
+          echo "🌐 API Gateway URL: $API_URL"
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+
+      - name: Deployment summary
+        run: |
+          echo "✅ Backend deployment complete!"
+          echo "Region: ${{ env.REGION }}"
+          echo "Project: ${{ env.PROJECT_ID }}"
+          echo "API URL: ${{ steps.get-urls.outputs.api_url }}"
+          gcloud functions list --regions=${{ env.REGION }}

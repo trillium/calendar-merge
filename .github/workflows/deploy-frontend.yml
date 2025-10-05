@@ -1,0 +1,61 @@
+name: Deploy Frontend to Vercel
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  NODE_VERSION: "20"
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: ${{ secrets.GCP_REGION }}
+
+jobs:
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Get API URL from backend deployment
+        id: get-api-url
+        run: |
+          API_URL=$(gcloud functions describe api --region=${{ env.REGION }} --gen2 --format='value(serviceConfig.uri)' 2>/dev/null || echo "")
+          if [ -z "$API_URL" ]; then
+            echo "❌ Could not get API URL"
+            exit 1
+          fi
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+          echo "🌐 Using API URL: $API_URL"
+
+      - name: Deploy to Vercel
+        working-directory: ./web
+        run: |
+          echo "🚀 Deploying frontend to Vercel..."
+
+          # Set environment variable in Vercel
+          echo "${{ steps.get-api-url.outputs.api_url }}" | vercel env add VITE_API_URL production --token=${{ secrets.VERCEL_TOKEN }} || true
+
+          # Deploy to production
+          vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+          echo "✅ Frontend deployment complete!"
