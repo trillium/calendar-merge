@@ -3,7 +3,10 @@
     "allow": [
       "Bash(gcloud:*)",
       "Bash(pnpm test:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(git push:*)",
+      "Bash(git remote add:*)",
+      "Bash(gh run list:*)"
     ],
     "deny": [],
     "ask": []
