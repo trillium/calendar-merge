@@ -9,6 +9,16 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["*.ts"],
+  "include": [
+    "auth.ts",
+    "config.ts",
+    "control.ts",
+    "dev-server.ts",
+    "index.ts",
+    "oauth.ts",
+    "sync.ts",
+    "types.ts",
+    "watch.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }
