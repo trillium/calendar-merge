@@ -90,7 +90,6 @@ jobs:
             --source=./functions/calendar-sync \
             --entry-point=handleWebhook \
             --trigger-http \
-            --allow-unauthenticated \
             --service-account=${{ env.SERVICE_ACCOUNT_EMAIL }} \
             --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }}
 
