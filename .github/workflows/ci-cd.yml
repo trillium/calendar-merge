@@ -188,12 +188,7 @@ jobs:
       - name: Get API URL from backend deployment
         id: get-api-url
         run: |
-          if [ ! -f .env.gcp ]; then
-            echo "❌ .env.gcp not found"
-            exit 1
-          fi
-          source .env.gcp
-          API_URL=$(gcloud functions describe api --region=$REGION --gen2 --format='value(serviceConfig.uri)' 2>/dev/null || echo "")
+          API_URL=$(gcloud functions describe api --region=${{ env.REGION }} --gen2 --format='value(serviceConfig.uri)' 2>/dev/null || echo "")
           if [ -z "$API_URL" ]; then
             echo "❌ Could not get API URL"
             exit 1
