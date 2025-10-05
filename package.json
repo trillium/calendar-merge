@@ -13,8 +13,9 @@
     "test:coverage": "vitest --coverage",
     "auth:setup": "./scripts/use-gcloud-auth.sh",
     "deploy:handleWebhook": "source .env.gcp && gcloud functions deploy handleWebhook --gen2 --runtime=nodejs20 --region=$REGION --source=./functions/calendar-sync --entry-point=handleWebhook --trigger-http --allow-unauthenticated --service-account=$SERVICE_ACCOUNT_EMAIL --set-env-vars PROJECT_ID=$PROJECT_ID",
-    "deploy:renewWatches": "source .env.gcp && gcloud functions deploy renewWatches --gen2 --runtime=nodejs20 --region=$REGION --source=./functions/calendar-sync --entry-point=renewWatches --trigger-http --service-account=$SERVICE_ACCOUNT_EMAIL --set-env-vars PROJECT_ID=$PROJECT_ID",
-    "deploy:functions": "pnpm deploy:handleWebhook && pnpm deploy:renewWatches",
+    "deploy:renewWatches": "source .env.gcp && gcloud functions deploy renewWatches --gen2 --runtime=nodejs20 --region=$REGION --source=./functions/calendar-sync --entry-point=renewWatches --trigger-http --allow-unauthenticated --service-account=$SERVICE_ACCOUNT_EMAIL --set-env-vars PROJECT_ID=$PROJECT_ID",
+    "deploy:api": "source .env.gcp && gcloud functions deploy api --gen2 --runtime=nodejs20 --region=$REGION --source=./functions/calendar-sync --entry-point=api --trigger-http --allow-unauthenticated --service-account=$SERVICE_ACCOUNT_EMAIL --set-env-vars PROJECT_ID=$PROJECT_ID",
+    "deploy:functions": "pnpm deploy:handleWebhook && pnpm deploy:renewWatches && pnpm deploy:api",
     "deploy": "pnpm deploy:functions",
     "build:deploy": "pnpm build && pnpm deploy",
     "functions:list": "source .env.gcp && gcloud functions list --regions=$REGION"
