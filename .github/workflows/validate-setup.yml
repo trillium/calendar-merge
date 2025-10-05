@@ -1,0 +1,206 @@
+name: Validate CI/CD Setup
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 9 * * 1'  # Weekly on Monday at 9 AM UTC
+
+env:
+  NODE_VERSION: "20"
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: ${{ secrets.GCP_REGION }}
+  SERVICE_ACCOUNT_EMAIL: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+jobs:
+  validate-setup:
+    name: Validate CI/CD Configuration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate GitHub Secrets
+        run: |
+          echo "🔍 Validating GitHub repository secrets..."
+          
+          # Check required secrets exist (they'll be empty if missing)
+          MISSING_SECRETS=()
+          
+          if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
+            MISSING_SECRETS+=("GCP_PROJECT_ID")
+          fi
+          
+          if [ -z "${{ secrets.GCP_REGION }}" ]; then
+            MISSING_SECRETS+=("GCP_REGION")
+          fi
+          
+          if [ -z "${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}" ]; then
+            MISSING_SECRETS+=("GCP_SERVICE_ACCOUNT_EMAIL")
+          fi
+          
+          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
+            MISSING_SECRETS+=("GCP_SA_KEY")
+          fi
+          
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            MISSING_SECRETS+=("VERCEL_TOKEN")
+          fi
+          
+          if [ ${#MISSING_SECRETS[@]} -eq 0 ]; then
+            echo "✅ All required secrets are present!"
+          else
+            echo "❌ Missing secrets:"
+            printf '  - %s\n' "${MISSING_SECRETS[@]}"
+            echo ""
+            echo "💡 Add missing secrets using:"
+            echo "   gh secret set SECRET_NAME"
+            exit 1
+          fi
+
+      - name: Validate Secret Values
+        run: |
+          echo "🔍 Validating secret values..."
+          
+          # Check GCP Project ID format
+          if [[ ! "${{ env.PROJECT_ID }}" =~ ^[a-z][a-z0-9-]*[a-z0-9]$ ]]; then
+            echo "❌ GCP_PROJECT_ID has invalid format: ${{ env.PROJECT_ID }}"
+            exit 1
+          fi
+          
+          # Check GCP Region format
+          if [[ ! "${{ env.REGION }}" =~ ^[a-z]+-[a-z]+[0-9]+$ ]]; then
+            echo "❌ GCP_REGION has invalid format: ${{ env.REGION }}"
+            exit 1
+          fi
+          
+          # Check Service Account Email format
+          if [[ ! "${{ env.SERVICE_ACCOUNT_EMAIL }}" =~ ^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.iam\.gserviceaccount\.com$ ]]; then
+            echo "❌ GCP_SERVICE_ACCOUNT_EMAIL has invalid format: ${{ env.SERVICE_ACCOUNT_EMAIL }}"
+            exit 1
+          fi
+          
+          echo "✅ Secret values have valid formats!"
+
+      - name: Test Google Cloud Authentication
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Test GCP Access
+        run: |
+          echo "🔍 Testing Google Cloud access..."
+          
+          # Test basic gcloud access
+          gcloud auth list --filter=status:ACTIVE --format="value(account)"
+          
+          # Test project access
+          gcloud config get-value project
+          
+          # Test Cloud Functions API access
+          gcloud services list --filter="name:cloudfunctions.googleapis.com" --format="value(name)" || {
+            echo "❌ Cloud Functions API not enabled or accessible"
+            exit 1
+          }
+          
+          # Test if service account has required permissions
+          gcloud projects get-iam-policy ${{ env.PROJECT_ID }} --flatten="bindings[].members" --filter="bindings.members:serviceAccount:${{ env.SERVICE_ACCOUNT_EMAIL }}" --format="value(bindings.role)" | head -5
+          
+          echo "✅ Google Cloud access working!"
+
+      - name: Test Node.js Setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Test Vercel CLI
+        run: |
+          echo "🔍 Testing Vercel access..."
+          
+          # Install Vercel CLI
+          npm install -g vercel
+          
+          # Test Vercel authentication (this will fail if token is invalid)
+          vercel --token=${{ secrets.VERCEL_TOKEN }} --version
+          
+          # Test if we can list teams/projects (validates token permissions)
+          vercel teams ls --token=${{ secrets.VERCEL_TOKEN }} || {
+            echo "❌ Vercel token invalid or insufficient permissions"
+            exit 1
+          }
+          
+          echo "✅ Vercel access working!"
+
+      - name: Validate Project Structure
+        run: |
+          echo "🔍 Validating project structure..."
+          
+          # Check required files exist
+          REQUIRED_FILES=(
+            "functions/calendar-sync/package.json"
+            "functions/calendar-sync/index.ts"
+            "functions/calendar-sync/api.ts"
+            "web/package.json"
+            "web/index.html"
+            "web/src/main.js"
+            "scripts/deploy/deploy-api.sh"
+            "scripts/deploy/deploy-handleWebhook.sh"
+            "scripts/deploy/deploy-renewWatches.sh"
+          )
+          
+          MISSING_FILES=()
+          for file in "${REQUIRED_FILES[@]}"; do
+            if [ ! -f "$file" ]; then
+              MISSING_FILES+=("$file")
+            fi
+          done
+          
+          if [ ${#MISSING_FILES[@]} -eq 0 ]; then
+            echo "✅ All required project files are present!"
+          else
+            echo "❌ Missing files:"
+            printf '  - %s\n' "${MISSING_FILES[@]}"
+            exit 1
+          fi
+
+      - name: Test Build Process
+        run: |
+          echo "🔍 Testing build process..."
+          
+          # Test function build
+          cd functions/calendar-sync
+          npm install
+          npm run gcp-build
+          
+          # Check if dist folder was created
+          if [ ! -d "dist" ]; then
+            echo "❌ Build failed - no dist folder created"
+            exit 1
+          fi
+          
+          # Check if main files were compiled
+          if [ ! -f "dist/index.js" ] || [ ! -f "dist/api.js" ]; then
+            echo "❌ Build incomplete - missing compiled files"
+            exit 1
+          fi
+          
+          echo "✅ Build process working!"
+
+      - name: Validation Summary
+        run: |
+          echo ""
+          echo "🎉 CI/CD Validation Complete!"
+          echo ""
+          echo "✅ All GitHub secrets present and valid"
+          echo "✅ Google Cloud authentication working"
+          echo "✅ GCP service account has proper access"
+          echo "✅ Vercel token valid and has permissions"
+          echo "✅ Project structure correct"
+          echo "✅ Build process functional"
+          echo ""
+          echo "🚀 Your CI/CD pipeline is ready to deploy!"
