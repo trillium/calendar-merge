@@ -20,4 +20,7 @@ gh secret set GOOGLE_CLIENT_ID --body "$GOOGLE_CLIENT_ID"
 echo "Setting GOOGLE_CLIENT_SECRET..."
 gh secret set GOOGLE_CLIENT_SECRET --body "$GOOGLE_CLIENT_SECRET"
 
+echo "Setting WEBHOOK_URL..."
+gh secret set WEBHOOK_URL --body "$WEBHOOK_URL"
+
 echo "✅ GitHub secrets updated successfully"
