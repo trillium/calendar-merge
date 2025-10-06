@@ -153,14 +153,7 @@ export default function Home() {
         message: `✓ Sync configured! Watching ${data.watchesCreated} calendars.`,
         type: "success",
       });
-    } catch (error: any) {
-      setSetupStatus({
-        message: "Setup failed: " + error.message,
-        type: "error",
-      });
-      setSetupBtnDisabled(false);
-    }
-  }
+
 
   // UI rendering
   return (
