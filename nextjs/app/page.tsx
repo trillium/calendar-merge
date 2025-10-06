@@ -3,6 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { API_URL, oauthCallback } from "./lib/api";
 import { fetchCalendars } from "./lib/calendarUtils";
+import CalendarList from "./ui/CalendarList";
+import Stepper from "./ui/Stepper";
+import StatusMessage from "./ui/StatusMessage";
+import ConnectButton from "./ui/ConnectButton";
 
 export default function Home() {
   // State
@@ -168,23 +172,17 @@ export default function Home() {
 
       {/* Step 1: Connect Google */}
       {step === 1 && (
-        <div className="step" id="step1">
+        <Stepper step={1}>
           <h2>Step 1: Connect Your Google Account</h2>
           <p>Grant access to your Google Calendars to enable syncing.</p>
-          <button className="btn" id="connectBtn" onClick={startOAuth}>
-            Connect Google Calendar
-          </button>
-          {authStatus && (
-            <div className={`status ${authStatus.type}`}>
-              {authStatus.message}
-            </div>
-          )}
-        </div>
+          <ConnectButton onClick={startOAuth} />
+          {authStatus && <StatusMessage message={authStatus.message} type={authStatus.type} />}
+        </Stepper>
       )}
 
       {/* Step 2: Select Calendars */}
       {step === 2 && (
-        <div className="step" id="step2">
+        <Stepper step={2}>
           <h2>Step 2: Select Source Calendars</h2>
           <p>Choose which calendars you want to merge.</p>
           {loadingCalendars ? (
@@ -192,27 +190,14 @@ export default function Home() {
               Loading your calendars...
             </div>
           ) : (
-            <div className="calendar-list" id="calendarList">
-              {calendars.map((cal) => (
-                <div className="calendar-item" key={cal.id}>
-                  <input
-                    type="checkbox"
-                    id={`cal-${cal.id}`}
-                    value={cal.id}
-                    checked={selectedSources.includes(cal.id)}
-                    onChange={handleCalendarSelection}
-                  />
-                  <label htmlFor={`cal-${cal.id}`}>{cal.summary}</label>
-                </div>
-              ))}
-            </div>
+            <CalendarList calendars={calendars} selected={selectedSources} onChange={handleCalendarSelection} />
           )}
-        </div>
+        </Stepper>
       )}
 
       {/* Step 3: Choose Target */}
       {step === 3 && (
-        <div className="step" id="step3">
+        <Stepper step={3}>
           <h2>Step 3: Choose Target Calendar</h2>
           <p>Select where merged events should appear.</p>
 
@@ -297,12 +282,8 @@ export default function Home() {
           >
             Start Syncing
           </button>
-          {setupStatus && (
-            <div className={`status ${setupStatus.type}`}>
-              {setupStatus.message}
-            </div>
-          )}
-        </div>
+          {setupStatus && <StatusMessage message={setupStatus.message} type={setupStatus.type} />}
+        </Stepper>
       )}
     </div>
   );
