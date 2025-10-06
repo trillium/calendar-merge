@@ -127,7 +127,7 @@ export default function Home() {
   }
 
 
-        );
+
         if (!createResponse.ok) throw new Error("Failed to create calendar");
         const newCalendar = await createResponse.json();
         finalTargetCalendarId = newCalendar.id;
