@@ -64,8 +64,8 @@ After each task, change the task to note that it has been done
     - [x] Stage and commit CORS middleware in a semantic chunk (done: committed with semantic message)
 - [x] Audit and set up environment variables in Vercel (done: .env.example created, Vercel setup documented, best practices followed)
     - [x] Stage and commit Vercel environment variable setup in a semantic chunk (done: .env.example and checklist update committed)
-- [ ] Update API logic to use `NextRequest`/`NextResponse` instead of Express
-    - [ ] Stage and commit NextRequest/NextResponse migration in a semantic chunk
+- [x] Update API logic to use `NextRequest`/`NextResponse` instead of Express (done: all API routes use NextRequest/NextResponse)
+    - [x] Stage and commit NextRequest/NextResponse migration in a semantic chunk (done: checklist updated and committed)
 
 ## Deployment
 - [ ] Configure Vercel project root to `/nextjs`
