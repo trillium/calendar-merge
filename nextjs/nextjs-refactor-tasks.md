@@ -52,7 +52,7 @@ After completing each task, stage and commit your changes before moving to the n
    - Example: `api.ts`, `calendarUtils.ts`.
    - _Commit: “refactor: extract utility functions from page.tsx”_
 
-5. **Refactor `page.tsx` to Compose Components**
+5. **Refactor `page.tsx` to Compose Components** ✅
 
    - Refactor `page.tsx` to import and compose the new UI components and hooks.
    - Ensure `page.tsx` is minimal, only responsible for layout and composition.
