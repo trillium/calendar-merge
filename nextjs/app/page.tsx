@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+import { API_URL, oauthCallback } from "./lib/api";
+import { fetchCalendars } from "./lib/calendarUtils";
 
 export default function Home() {
   // State
@@ -63,13 +63,7 @@ export default function Home() {
 
   async function handleOAuthCallback(code: string) {
     try {
-      const response = await fetch(`${API_URL}/oauth/callback`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, redirect_uri: window.location.origin }),
-      });
-      if (!response.ok) throw new Error("OAuth failed");
-      const data = await response.json();
+      const data = await oauthCallback(code);
       setAccessToken(data.access_token);
       localStorage.setItem("access_token", data.access_token);
       setAuthStatus({ message: "Successfully connected!", type: "success" });
@@ -87,15 +81,8 @@ export default function Home() {
   async function loadCalendars(token: string) {
     setLoadingCalendars(true);
     try {
-      const response = await fetch(
-        "https://www.googleapis.com/calendar/v3/users/me/calendarList",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (!response.ok) throw new Error("Failed to load calendars");
-      const data = await response.json();
-      setCalendars(data.items || []);
+      const items = await fetchCalendars(token);
+      setCalendars(items);
       setLoadingCalendars(false);
     } catch (error: any) {
       setAuthStatus({

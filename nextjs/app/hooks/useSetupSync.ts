@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { setupCalendarSync } from "../lib/api";
+import { createCalendar } from "../lib/calendarUtils";
 
 export function useSetupSync({
   accessToken,
@@ -38,38 +40,18 @@ export function useSetupSync({
           message: "Creating new calendar...",
           type: "success",
         });
-        const createResponse = await fetch(
-          "https://www.googleapis.com/calendar/v3/calendars",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ summary: newCalendarName.trim() }),
-          }
-        );
-        if (!createResponse.ok) throw new Error("Failed to create calendar");
-        const newCalendar = await createResponse.json();
+        const newCalendar = await createCalendar(accessToken!, newCalendarName.trim());
         finalTargetCalendarId = newCalendar.id;
         setSetupStatus({
           message: `Created calendar "${newCalendar.summary}". Setting up sync...`,
           type: "success",
         });
       }
-      const response = await fetch(`${API_URL}/setup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          sourceCalendars: selectedSources,
-          targetCalendar: finalTargetCalendarId,
-        }),
+      const data = await setupCalendarSync({
+        accessToken: accessToken!,
+        selectedSources,
+        targetCalendarId: finalTargetCalendarId,
       });
-      if (!response.ok) throw new Error("Setup failed");
-      const data = await response.json();
       setSetupStatus({
         message: `✓ Sync configured! Watching ${data.watchesCreated} calendars.`,
         type: "success",
