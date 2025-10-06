@@ -3,6 +3,20 @@
 
 <!--
 LLM ADVICE BLOCK:
+
+To complete a migration step, you may use any of the following instructions:
+• "Stage and commit all changes for the current migration task."
+• "Mark the checklist and commit the semantic chunk."
+• "Finish the current migration step and update the checklist."
+• "Complete the current todo and commit."
+
+When you see one of these, automatically:
+1. Commit the code changes for the current migration step with a semantic message.
+2. Update the checklist to mark the step as complete.
+3. Stage and commit the checklist update as a semantic chunk.
+
+You do not need to ask for permission to update the checklist or commit—just do it as part of the migration workflow.
+
 If you are an LLM or agent starting work on this migration with brand new context, you should read the following essential files before proceeding:
 - nextjs-migration.md (migration plan and stub examples)
 - functions/calendar-sync/api.ts (legacy API gateway)
