@@ -46,7 +46,7 @@ After completing each task, stage and commit your changes before moving to the n
    - Example hooks: `useOAuth.ts`, `useCalendars.ts`, `useSetupSync.ts`.
    - _Commit: “refactor: extract custom hooks from page.tsx”_
 
-4. **Extract Utility Functions**
+4. **Extract Utility Functions** ✅
 
    - Move API calls and utility logic (e.g., API URL construction, calendar utilities) into `app/lib/`.
    - Example: `api.ts`, `calendarUtils.ts`.
