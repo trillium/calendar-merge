@@ -57,7 +57,7 @@ jobs:
             --trigger-http \
             --allow-unauthenticated \
             --service-account=${{ env.SERVICE_ACCOUNT_EMAIL }} \
-            --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},WEBHOOK_URL=${{ secrets.WEBHOOK_URL }}
 
       - name: Deploy renewWatches function
         run: |
@@ -70,7 +70,7 @@ jobs:
             --trigger-http \
             --allow-unauthenticated \
             --service-account=${{ env.SERVICE_ACCOUNT_EMAIL }} \
-            --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},WEBHOOK_URL=${{ secrets.WEBHOOK_URL }}
 
       - name: Deploy api function
         run: |
@@ -83,7 +83,7 @@ jobs:
             --trigger-http \
             --allow-unauthenticated \
             --service-account=${{ env.SERVICE_ACCOUNT_EMAIL }} \
-            --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            --set-env-vars PROJECT_ID=${{ env.PROJECT_ID }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},WEBHOOK_URL=${{ secrets.WEBHOOK_URL }}
 
       - name: Get function URLs
         id: get-urls
