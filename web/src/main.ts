@@ -82,7 +82,7 @@ function handleTargetOptionChange(e: Event): void {
 function validateSetupButton(): void {
     const targetOptionElement = document.querySelector('input[name="targetOption"]:checked') as HTMLInputElement;
     if (!targetOptionElement) return;
-    
+
     const targetOption = targetOptionElement.value;
     const isValid = selectedSources.length > 0 && (
         (targetOption === 'existing' && targetCalendar.value) ||
@@ -236,7 +236,7 @@ async function setupSync() {
     }
 }
 
-function showStatus(element: HTMLElement, message: string, type: 'success' | 'error'): void {
+function showStatus(element, message, type) {
     element.textContent = message;
     element.className = `status ${type}`;
 }
