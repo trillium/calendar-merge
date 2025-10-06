@@ -7,6 +7,7 @@ import CalendarList from "./ui/CalendarList";
 import Stepper from "./ui/Stepper";
 import StatusMessage from "./ui/StatusMessage";
 import ConnectButton from "./ui/ConnectButton";
+import { useSetupSync } from "./hooks/useSetupSync";
 
 export default function Home() {
   // State
