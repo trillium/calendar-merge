@@ -9,6 +9,44 @@ import { createCalendarWatch } from './watch';
 const firestore = new Firestore();
 
 /**
+ * Helper function to clean up existing watches for a user
+ * Returns the number of watches stopped
+ */
+export async function cleanupUserWatches(userId: string): Promise<number> {
+    const auth = await getAuthClient(userId);
+    const calendar = google.calendar({ version: 'v3', auth });
+
+    // Get all watches for this user
+    const watchesSnapshot = await firestore
+        .collection(CONFIG.FIRESTORE_COLLECTIONS.WATCHES)
+        .where('userId', '==', userId)
+        .get();
+
+    let stoppedCount = 0;
+
+    // Stop each watch with Google Calendar API
+    for (const doc of watchesSnapshot.docs) {
+        const watchData = doc.data() as WatchData;
+        try {
+            await calendar.channels.stop({
+                requestBody: {
+                    id: watchData.channelId,
+                    resourceId: watchData.resourceId,
+                },
+            });
+            await doc.ref.delete();
+            stoppedCount++;
+        } catch (error) {
+            console.error(`Failed to stop watch ${watchData.channelId}:`, error);
+            // Still delete the Firestore doc even if Google API call fails
+            await doc.ref.delete();
+        }
+    }
+
+    return stoppedCount;
+}
+
+/**
  * Pause syncing for a user - stops processing webhooks but keeps watches active
  */
 export async function pauseSync(req: Request, res: Response): Promise<void> {

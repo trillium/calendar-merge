@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { pauseSync, resumeSync, stopSync, clearUserData, restartSync } from './control';
+import { pauseSync, resumeSync, stopSync, clearUserData, restartSync, cleanupUserWatches } from './control';
 import { Firestore } from '@google-cloud/firestore';
 import { google } from 'googleapis';
 import * as authModule from './auth';
@@ -103,6 +103,86 @@ describe('control.ts', () => {
       json: jsonSpy,
       status: statusSpy,
     };
+  });
+
+  describe('cleanupUserWatches', () => {
+    it('should stop all watches for a user and return count', async () => {
+      const mockWatchDocs = [
+        {
+          data: () => ({
+            channelId: 'channel1',
+            resourceId: 'resource1',
+          }),
+          ref: { delete: vi.fn().mockResolvedValue(undefined) },
+        },
+        {
+          data: () => ({
+            channelId: 'channel2',
+            resourceId: 'resource2',
+          }),
+          ref: { delete: vi.fn().mockResolvedValue(undefined) },
+        },
+      ];
+
+      mockGet.mockResolvedValue({
+        docs: mockWatchDocs,
+      });
+
+      const count = await cleanupUserWatches('user123');
+
+      expect(mockWhere).toHaveBeenCalledWith('userId', '==', 'user123');
+      expect(mockCalendar.channels.stop).toHaveBeenCalledTimes(2);
+      expect(mockCalendar.channels.stop).toHaveBeenCalledWith({
+        requestBody: {
+          id: 'channel1',
+          resourceId: 'resource1',
+        },
+      });
+      expect(mockCalendar.channels.stop).toHaveBeenCalledWith({
+        requestBody: {
+          id: 'channel2',
+          resourceId: 'resource2',
+        },
+      });
+      expect(mockWatchDocs[0].ref.delete).toHaveBeenCalled();
+      expect(mockWatchDocs[1].ref.delete).toHaveBeenCalled();
+      expect(count).toBe(2);
+    });
+
+    it('should handle Google API errors gracefully and still delete Firestore docs', async () => {
+      const mockWatchDocs = [
+        {
+          data: () => ({
+            channelId: 'channel1',
+            resourceId: 'resource1',
+          }),
+          ref: { delete: vi.fn().mockResolvedValue(undefined) },
+        },
+      ];
+
+      mockGet.mockResolvedValue({
+        docs: mockWatchDocs,
+      });
+
+      mockCalendar.channels.stop.mockRejectedValue(new Error('Google API error'));
+
+      const count = await cleanupUserWatches('user123');
+
+      expect(mockCalendar.channels.stop).toHaveBeenCalled();
+      expect(mockWatchDocs[0].ref.delete).toHaveBeenCalled();
+      expect(count).toBe(0); // Not incremented due to error
+    });
+
+    it('should return 0 if no watches exist', async () => {
+      mockGet.mockResolvedValue({
+        docs: [],
+      });
+
+      const count = await cleanupUserWatches('user123');
+
+      expect(count).toBe(0);
+      expect(mockCalendar.channels.stop).not.toHaveBeenCalled();
+    });
   });
 
   describe('pauseSync', () => {

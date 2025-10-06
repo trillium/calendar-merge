@@ -4,6 +4,7 @@ import { Firestore } from '@google-cloud/firestore';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { CONFIG } from './config';
 import { createCalendarWatch } from './watch';
+import { cleanupUserWatches } from './control';
 
 const firestore = new Firestore();
 const secretManager = new SecretManagerServiceClient();
@@ -116,6 +117,11 @@ export const setup = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        // Clean up any existing watches before creating new ones
+        console.log(`Cleaning up existing watches for user ${userId}...`);
+        const cleanedCount = await cleanupUserWatches(userId);
+        console.log(`Cleaned up ${cleanedCount} existing watch(es)`);
+
         // Store configuration
         await firestore
             .collection('users')
@@ -130,6 +136,12 @@ export const setup = async (req: Request, res: Response): Promise<void> => {
 
         // Create watch subscriptions
         const webhookUrl = process.env.WEBHOOK_URL || '';
+        if (!webhookUrl) {
+            console.error('WEBHOOK_URL not configured');
+            res.status(500).json({ error: 'Webhook URL not configured' });
+            return;
+        }
+
         let watchesCreated = 0;
 
         for (const calendarId of sourceCalendars) {
