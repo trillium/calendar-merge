@@ -22,7 +22,8 @@
     "frontend:deploy": "./scripts/setup-vercel-env.sh",
     "github:update-secrets:gcp": "./scripts/github-update-secrets.sh",
     "functions:list": "source .env.gcp && gcloud functions list --regions=$REGION",
-    "api:url": "./scripts/get-api-url.sh"
+    "api:url": "./scripts/get-api-url.sh",
+    "dev:nextjs": "pnpm --filter ./nextjs dev"
   },
   "workspaces": [
     "functions/*",
