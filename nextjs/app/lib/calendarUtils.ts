@@ -1,3 +1,9 @@
+export interface Calendar {
+  id: string;
+  summary: string;
+  [key: string]: unknown;
+}
+
 export async function fetchCalendars(token: string) {
   const response = await fetch(
     "https://www.googleapis.com/calendar/v3/users/me/calendarList",

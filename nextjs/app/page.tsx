@@ -12,7 +12,7 @@ import { useSetupSync } from "./hooks/useSetupSync";
 export default function Home() {
   // State
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [calendars, setCalendars] = useState<any[]>([]);
+  const [calendars, setCalendars] = useState<import("./lib/calendarUtils").Calendar[]>([]);
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [targetOption, setTargetOption] = useState<string>("existing");
   const [targetCalendarId, setTargetCalendarId] = useState<string>("");
@@ -75,9 +75,13 @@ export default function Home() {
       window.history.replaceState({}, document.title, "/");
       setStep(2);
       loadCalendars(data.access_token);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let message = "Authentication failed";
+      if (error instanceof Error) {
+        message += ": " + error.message;
+      }
       setAuthStatus({
-        message: "Authentication failed: " + error.message,
+        message,
         type: "error",
       });
     }
@@ -89,9 +93,13 @@ export default function Home() {
       const items = await fetchCalendars(token);
       setCalendars(items);
       setLoadingCalendars(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let message = "Failed to load calendars";
+      if (error instanceof Error) {
+        message += ": " + error.message;
+      }
       setAuthStatus({
-        message: "Failed to load calendars: " + error.message,
+        message,
         type: "error",
       });
       setLoadingCalendars(false);
@@ -127,33 +135,6 @@ export default function Home() {
     setNewCalendarName(e.target.value);
   }
 
-
-
-        if (!createResponse.ok) throw new Error("Failed to create calendar");
-        const newCalendar = await createResponse.json();
-        finalTargetCalendarId = newCalendar.id;
-        setSetupStatus({
-          message: `Created calendar "${newCalendar.summary}". Setting up sync...`,
-          type: "success",
-        });
-      }
-      const response = await fetch(`${API_URL}/setup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          sourceCalendars: selectedSources,
-          targetCalendar: finalTargetCalendarId,
-        }),
-      });
-      if (!response.ok) throw new Error("Setup failed");
-      const data = await response.json();
-      setSetupStatus({
-        message: `✓ Sync configured! Watching ${data.watchesCreated} calendars.`,
-        type: "success",
-      });
 
 
   // UI rendering

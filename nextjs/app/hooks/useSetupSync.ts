@@ -15,7 +15,7 @@ export function useSetupSync({
   targetOption: string;
   targetCalendarId: string;
   newCalendarName: string;
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: unknown) => void;
 }) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
   const [setupStatus, setSetupStatus] = useState<{ message: string; type: string } | null>(null);
@@ -57,9 +57,13 @@ export function useSetupSync({
         type: "success",
       });
       if (onSuccess) onSuccess(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let message = "Setup failed";
+      if (error instanceof Error) {
+        message += ": " + error.message;
+      }
       setSetupStatus({
-        message: "Setup failed: " + error.message,
+        message,
         type: "error",
       });
       setSetupBtnDisabled(false);
