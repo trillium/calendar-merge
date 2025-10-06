@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -12,9 +14,25 @@ export default function Home() {
   const [newCalendarName, setNewCalendarName] = useState<string>("");
   const [step, setStep] = useState<number>(1);
   const [loadingCalendars, setLoadingCalendars] = useState<boolean>(false);
-  const [authStatus, setAuthStatus] = useState<{ message: string; type: string } | null>(null);
-  const [setupStatus, setSetupStatus] = useState<{ message: string; type: string } | null>(null);
-  const [setupBtnDisabled, setSetupBtnDisabled] = useState<boolean>(true);
+  const [authStatus, setAuthStatus] = useState<{
+    message: string;
+    type: string;
+  } | null>(null);
+  // useSetupSync hook
+  const {
+    setupStatus,
+    setupBtnDisabled,
+    setSetupBtnDisabled,
+    validateSetupBtn,
+    setupSync,
+    setSetupStatus,
+  } = useSetupSync({
+    accessToken,
+    selectedSources,
+    targetOption,
+    targetCalendarId,
+    newCalendarName,
+  });
 
   // OAuth callback handling
   useEffect(() => {
@@ -34,15 +52,13 @@ export default function Home() {
 
   // Validate setup button
   useEffect(() => {
-    const isValid =
-      selectedSources.length > 0 &&
-      ((targetOption === "existing" && targetCalendarId) ||
-        (targetOption === "new" && newCalendarName.trim()));
-    setSetupBtnDisabled(!isValid);
-  }, [selectedSources, targetOption, targetCalendarId, newCalendarName]);
+    validateSetupBtn();
+  }, [selectedSources, targetOption, targetCalendarId, newCalendarName, validateSetupBtn]);
 
   function startOAuth() {
-    window.location.href = `${API_URL}/oauth/start?redirect_uri=${encodeURIComponent(window.location.origin)}`;
+    window.location.href = `${API_URL}/oauth/start?redirect_uri=${encodeURIComponent(
+      window.location.origin
+    )}`;
   }
 
   async function handleOAuthCallback(code: string) {
@@ -61,7 +77,10 @@ export default function Home() {
       setStep(2);
       loadCalendars(data.access_token);
     } catch (error: any) {
-      setAuthStatus({ message: "Authentication failed: " + error.message, type: "error" });
+      setAuthStatus({
+        message: "Authentication failed: " + error.message,
+        type: "error",
+      });
     }
   }
 
@@ -79,7 +98,10 @@ export default function Home() {
       setCalendars(data.items || []);
       setLoadingCalendars(false);
     } catch (error: any) {
-      setAuthStatus({ message: "Failed to load calendars: " + error.message, type: "error" });
+      setAuthStatus({
+        message: "Failed to load calendars: " + error.message,
+        type: "error",
+      });
       setLoadingCalendars(false);
     }
   }
@@ -113,23 +135,7 @@ export default function Home() {
     setNewCalendarName(e.target.value);
   }
 
-  async function setupSync() {
-    setSetupBtnDisabled(true);
-    setSetupStatus({ message: "Setting up calendar sync...", type: "success" });
-    try {
-      let finalTargetCalendarId = targetCalendarId;
-      if (targetOption === "new") {
-        setSetupStatus({ message: "Creating new calendar...", type: "success" });
-        const createResponse = await fetch(
-          "https://www.googleapis.com/calendar/v3/calendars",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ summary: newCalendarName.trim() }),
-          }
+
         );
         if (!createResponse.ok) throw new Error("Failed to create calendar");
         const newCalendar = await createResponse.json();
@@ -157,7 +163,10 @@ export default function Home() {
         type: "success",
       });
     } catch (error: any) {
-      setSetupStatus({ message: "Setup failed: " + error.message, type: "error" });
+      setSetupStatus({
+        message: "Setup failed: " + error.message,
+        type: "error",
+      });
       setSetupBtnDisabled(false);
     }
   }
@@ -179,7 +188,9 @@ export default function Home() {
             Connect Google Calendar
           </button>
           {authStatus && (
-            <div className={`status ${authStatus.type}`}>{authStatus.message}</div>
+            <div className={`status ${authStatus.type}`}>
+              {authStatus.message}
+            </div>
           )}
         </div>
       )}
@@ -219,7 +230,13 @@ export default function Home() {
           <p>Select where merged events should appear.</p>
 
           <div style={{ marginBottom: "15px" }}>
-            <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                cursor: "pointer",
+              }}
+            >
               <input
                 type="radio"
                 name="targetOption"
@@ -249,7 +266,13 @@ export default function Home() {
           )}
 
           <div style={{ marginBottom: "15px" }}>
-            <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                cursor: "pointer",
+              }}
+            >
               <input
                 type="radio"
                 name="targetOption"
@@ -288,7 +311,9 @@ export default function Home() {
             Start Syncing
           </button>
           {setupStatus && (
-            <div className={`status ${setupStatus.type}`}>{setupStatus.message}</div>
+            <div className={`status ${setupStatus.type}`}>
+              {setupStatus.message}
+            </div>
           )}
         </div>
       )}
