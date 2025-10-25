@@ -1,13 +1,21 @@
 import { google } from 'googleapis';
 import { Firestore } from '@google-cloud/firestore';
-import { CloudTasksClient } from '@google-cloud/tasks';
 import { getAuthClient } from './auth';
 import { WatchData } from './types';
 import { CONFIG } from './config';
 import { syncEvent } from './sync';
 
 const firestore = new Firestore();
-const tasksClient = new CloudTasksClient();
+
+// Lazy-load CloudTasksClient to avoid bundling issues in Next.js
+let tasksClient: any = null;
+async function getTasksClient() {
+    if (!tasksClient) {
+        const { CloudTasksClient } = await import('@google-cloud/tasks');
+        tasksClient = new CloudTasksClient();
+    }
+    return tasksClient;
+}
 
 // Rate limiting: delay between API calls to respect Google's quotas
 const RATE_LIMIT_DELAY_MS = 150; // 150ms delay = ~6-7 requests/second, well under 10/second limit
@@ -151,18 +159,27 @@ export async function batchSyncEvents(channelId: string): Promise<void> {
 export async function enqueueBatchSync(channelId: string, delaySeconds: number): Promise<void> {
     try {
         const projectId = process.env.PROJECT_ID || CONFIG.PROJECT_ID;
-        const projectNumber = process.env.PROJECT_NUMBER;
         const region = process.env.REGION || 'us-central1';
+        const functionUrl = process.env.BATCH_SYNC_URL;
+        const serviceAccountEmail = process.env.SERVICE_ACCOUNT_EMAIL;
 
-        if (!projectId || !projectNumber) {
-            throw new Error('Missing PROJECT_ID or PROJECT_NUMBER environment variables');
+        if (!projectId) {
+            throw new Error('Missing PROJECT_ID environment variable');
         }
 
-        // Construct function URL
-        const functionUrl = `https://${region}-${projectId}.cloudfunctions.net/batchSync`;
+        if (!functionUrl) {
+            throw new Error('Missing BATCH_SYNC_URL environment variable');
+        }
+
+        if (!serviceAccountEmail) {
+            throw new Error('Missing SERVICE_ACCOUNT_EMAIL environment variable');
+        }
+
+        // Get Cloud Tasks client (lazy-loaded)
+        const client = await getTasksClient();
 
         // Construct queue path
-        const queuePath = tasksClient.queuePath(projectId, region, 'calendar-sync-queue');
+        const queuePath = client.queuePath(projectId, region, 'calendar-sync-queue');
 
         // Create task
         const task = {
@@ -174,7 +191,7 @@ export async function enqueueBatchSync(channelId: string, delaySeconds: number):
                 },
                 body: Buffer.from(JSON.stringify({ channelId })).toString('base64'),
                 oidcToken: {
-                    serviceAccountEmail: `service-${projectNumber}@gcp-sa-cloudtasks.iam.gserviceaccount.com`,
+                    serviceAccountEmail: serviceAccountEmail,
                     audience: functionUrl,
                 },
             },
@@ -184,7 +201,7 @@ export async function enqueueBatchSync(channelId: string, delaySeconds: number):
         };
 
         console.log(`Enqueueing batch sync task for channel ${channelId} with ${delaySeconds}s delay`);
-        await tasksClient.createTask({
+        await client.createTask({
             parent: queuePath,
             task,
         });

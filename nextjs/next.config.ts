@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  serverExternalPackages: [
+    '@google-cloud/tasks',
+    '@google-cloud/firestore',
+    'googleapis',
+  ],
 };
 
 export default nextConfig;
