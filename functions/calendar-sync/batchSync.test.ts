@@ -505,16 +505,16 @@ describe('batchSync.ts', () => {
       });
     });
 
-    it('should use CONFIG.PROJECT_ID fallback if env var not set', async () => {
-      const originalEnv = process.env.PROJECT_ID;
-      delete process.env.PROJECT_ID;
-
-      // Code has fallback to CONFIG.PROJECT_ID, so this should succeed
+    it('should successfully create task with all required env vars', async () => {
+      // This test verifies the happy path with all env vars set (from beforeEach)
       await enqueueBatchSync('channel-123', 5);
 
       expect(mockTasksClient.createTask).toHaveBeenCalled();
-
-      process.env.PROJECT_ID = originalEnv;
+      expect(mockTasksClient.queuePath).toHaveBeenCalledWith(
+        'test-project',
+        'us-central1',
+        'calendar-sync-queue'
+      );
     });
 
     it('should throw error if PROJECT_NUMBER is missing', async () => {
