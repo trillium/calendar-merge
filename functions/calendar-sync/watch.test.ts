@@ -3,6 +3,7 @@ import { createCalendarWatch, renewCalendarWatch, stopCalendarWatch } from './wa
 import { Firestore } from '@google-cloud/firestore';
 import { google } from 'googleapis';
 import * as authModule from './auth';
+import * as batchSyncModule from './batchSync';
 
 // Mock Firestore
 vi.mock('@google-cloud/firestore', () => {
@@ -39,6 +40,11 @@ vi.mock('./auth', () => ({
   getAuthClient: vi.fn(),
 }));
 
+// Mock batchSync module
+vi.mock('./batchSync', () => ({
+  enqueueBatchSync: vi.fn(),
+}));
+
 describe('watch.ts', () => {
   let mockFirestore: any;
   let mockCalendar: any;
@@ -50,6 +56,11 @@ describe('watch.ts', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Set up environment variables for enqueueBatchSync
+    process.env.PROJECT_ID = 'test-project';
+    process.env.PROJECT_NUMBER = '123456789012';
+    process.env.REGION = 'us-central1';
 
     mockFirestore = new Firestore();
     mockCollection = mockFirestore.collection;
@@ -77,21 +88,14 @@ describe('watch.ts', () => {
 
   describe('createCalendarWatch', () => {
     it('should create a watch subscription and store in Firestore', async () => {
-      const mockInitialSyncResponse = {
-        data: {
-          items: [{ id: 'event1' }, { id: 'event2' }],
-          nextSyncToken: 'sync-token-123',
-        },
-      };
-
       const mockWatchResponse = {
         data: {
           resourceId: 'resource-123',
         },
       };
 
-      mockCalendar.events.list.mockResolvedValue(mockInitialSyncResponse);
       mockCalendar.events.watch.mockResolvedValue(mockWatchResponse);
+      vi.mocked(batchSyncModule.enqueueBatchSync).mockResolvedValue();
 
       await createCalendarWatch(
         'user123',
@@ -103,13 +107,6 @@ describe('watch.ts', () => {
       const expectedChannelId = Buffer.from('user123-calendar123-1234567890000').toString('base64');
 
       expect(authModule.getAuthClient).toHaveBeenCalledWith('user123');
-
-      // Should perform initial sync first
-      expect(mockCalendar.events.list).toHaveBeenCalledWith({
-        calendarId: 'calendar123',
-        maxResults: 2500,
-        singleEvents: true,
-      });
 
       expect(mockCalendar.events.watch).toHaveBeenCalledWith({
         calendarId: 'calendar123',
@@ -128,19 +125,21 @@ describe('watch.ts', () => {
         resourceId: 'resource-123',
         expiration: expect.any(Number),
         targetCalendarId: 'target-cal',
-        syncToken: 'sync-token-123',
+        stats: {
+          totalEventsSynced: 0,
+        },
+        syncState: {
+          status: 'pending',
+          eventsSynced: 0,
+          timeMax: expect.any(String),
+        },
       });
+
+      // Should enqueue batch sync
+      expect(batchSyncModule.enqueueBatchSync).toHaveBeenCalledWith(expectedChannelId, 5);
     });
 
     it('should handle watch creation errors', async () => {
-      const mockInitialSyncResponse = {
-        data: {
-          items: [],
-          nextSyncToken: 'sync-token-123',
-        },
-      };
-
-      mockCalendar.events.list.mockResolvedValue(mockInitialSyncResponse);
       mockCalendar.events.watch.mockRejectedValue(new Error('API error'));
 
       await expect(
@@ -165,17 +164,11 @@ describe('watch.ts', () => {
         ref: { delete: mockDelete },
       });
 
-      const mockInitialSyncResponse = {
-        data: {
-          items: [{ id: 'event1' }],
-          nextSyncToken: 'new-sync-token',
-        },
-      };
-
-      mockCalendar.events.list.mockResolvedValue(mockInitialSyncResponse);
       mockCalendar.events.watch.mockResolvedValue({
         data: { resourceId: 'new-resource-id' },
       });
+
+      vi.mocked(batchSyncModule.enqueueBatchSync).mockResolvedValue();
 
       process.env.WEBHOOK_URL = 'https://example.com/webhook';
 
@@ -189,9 +182,9 @@ describe('watch.ts', () => {
           resourceId: 'old-resource-id',
         },
       });
-      expect(mockCalendar.events.list).toHaveBeenCalled();
       expect(mockCalendar.events.watch).toHaveBeenCalled();
       expect(mockDelete).toHaveBeenCalled();
+      expect(batchSyncModule.enqueueBatchSync).toHaveBeenCalled();
     });
 
     it('should skip renewal if watch does not exist', async () => {

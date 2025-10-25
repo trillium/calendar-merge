@@ -8,11 +8,12 @@ import * as authModule from './auth';
 vi.mock('@google-cloud/firestore', () => {
   const mockUpdate = vi.fn();
   const mockDelete = vi.fn();
+  const mockSet = vi.fn();
   const mockAdd = vi.fn();
   const mockGet = vi.fn();
   const mockLimit = vi.fn(() => ({ get: mockGet }));
   const mockWhere = vi.fn(() => ({ where: mockWhere, limit: mockLimit, get: mockGet }));
-  const mockDoc = vi.fn(() => ({ get: mockGet, update: mockUpdate, delete: mockDelete, ref: { delete: mockDelete, update: mockUpdate } }));
+  const mockDoc = vi.fn(() => ({ get: mockGet, set: mockSet, update: mockUpdate, delete: mockDelete, ref: { delete: mockDelete, update: mockUpdate } }));
   const mockCollection = vi.fn(() => ({ doc: mockDoc, where: mockWhere, add: mockAdd }));
 
   return {
@@ -91,10 +92,13 @@ describe('sync.ts', () => {
         { id: 'event1', summary: 'Test Event 1', start: { dateTime: '2025-10-04T10:00:00Z' } },
       ];
 
+      const mockUpdate = vi.fn();
+
       // Mock watch document
       mockGet.mockResolvedValueOnce({
         exists: true,
         data: () => mockWatchData,
+        ref: { update: mockUpdate },
       });
 
       // Mock event list
@@ -174,11 +178,13 @@ describe('sync.ts', () => {
       };
 
       const mockUpdateFn = vi.fn();
+      const mockWatchUpdate = vi.fn();
 
       // Mock watch document
       mockGet.mockResolvedValueOnce({
         exists: true,
         data: () => mockWatchData,
+        ref: { update: mockWatchUpdate },
       });
 
       // Mock event list
@@ -232,10 +238,13 @@ describe('sync.ts', () => {
         { id: 'event-abc', summary: 'Test', start: { dateTime: '2025-10-04T10:00:00Z' } },
       ];
 
+      const mockWatchUpdate = vi.fn();
+
       // Mock watch document
       mockGet.mockResolvedValueOnce({
         exists: true,
         data: () => mockWatchData,
+        ref: { update: mockWatchUpdate },
       });
 
       // Mock event list
@@ -291,11 +300,13 @@ describe('sync.ts', () => {
       };
 
       const mockDocRef = { delete: vi.fn() };
+      const mockWatchUpdate = vi.fn();
 
       // Mock watch document
       mockGet.mockResolvedValueOnce({
         exists: true,
         data: () => mockWatchData,
+        ref: { update: mockWatchUpdate },
       });
 
       // Mock event list
