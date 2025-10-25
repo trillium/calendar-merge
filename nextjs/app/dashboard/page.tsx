@@ -242,25 +242,25 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {watches.some((w) => !w.paused) ? (
                 <button
                   onClick={handlePauseSync}
-                  className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-6 rounded-lg"
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-6 rounded-lg whitespace-nowrap"
                 >
                   Pause Sync
                 </button>
               ) : (
                 <button
                   onClick={handleResumeSync}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg"
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg whitespace-nowrap"
                 >
                   Resume Sync
                 </button>
               )}
               <button
                 onClick={() => setShowStopConfirm(true)}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg whitespace-nowrap"
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg whitespace-nowrap"
               >
                 Stop & Unsubscribe
               </button>
