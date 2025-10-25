@@ -4,6 +4,7 @@ import { getAuthClient } from './auth';
 import { WatchData } from './types';
 import { CONFIG } from './config';
 import { syncEvent } from './sync';
+import { enqueueBatchSync } from './batchSync';
 
 const firestore = new Firestore();
 const calendar = google.calendar('v3');
@@ -32,19 +33,10 @@ export async function createCalendarWatch(
     const expiration = Date.now() + (CONFIG.WATCH_EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
 
     try {
-        // Perform initial sync to get syncToken (future events only)
-        console.log(`Performing initial sync for calendar ${calendarId} (future events only)`);
+        // Calculate time window for batch sync (no API call yet)
         const now = new Date();
-        const initialSync = await calendar.events.list({
-            calendarId,
-            maxResults: 2500,
-            singleEvents: true,
-            timeMin: now.toISOString(), // Only sync future events
-            orderBy: 'startTime',
-        });
-
-        const initialSyncToken = initialSync.data.nextSyncToken;
-        console.log(`Initial sync complete: ${initialSync.data.items?.length || 0} future events, syncToken obtained`);
+        const timeMax = new Date();
+        timeMax.setFullYear(timeMax.getFullYear() + 2);
 
         // Create watch subscription
         const response = await calendar.events.watch({
@@ -57,6 +49,7 @@ export async function createCalendarWatch(
             },
         });
 
+        // Store watch with pending sync state (no syncToken yet)
         const watchData: WatchData = {
             userId,
             calendarId,
@@ -64,9 +57,13 @@ export async function createCalendarWatch(
             resourceId: response.data.resourceId || '',
             expiration,
             targetCalendarId,
-            ...(initialSyncToken && { syncToken: initialSyncToken }),
             stats: {
                 totalEventsSynced: 0,
+            },
+            syncState: {
+                status: 'pending',
+                eventsSynced: 0,
+                timeMax: timeMax.toISOString(),
             },
         };
 
@@ -75,7 +72,10 @@ export async function createCalendarWatch(
             .doc(channelId)
             .set(watchData);
 
-        console.log(`Watch created for calendar ${calendarId}`);
+        // Enqueue first batch sync task
+        await enqueueBatchSync(channelId, 5);
+
+        console.log(`Watch created for calendar ${calendarId}, batch sync enqueued`);
         return channelId;
     } catch (error) {
         console.error(`Error creating watch for calendar ${calendarId}:`, error);
