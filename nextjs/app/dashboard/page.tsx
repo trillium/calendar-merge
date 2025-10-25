@@ -103,7 +103,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex items-center justify-center min-h-screen p-6">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-3xl w-full p-10">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full p-10">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-gray-800 dark:text-gray-100 text-3xl font-bold">
             📊 Sync Dashboard
@@ -260,7 +260,7 @@ export default function Dashboard() {
               )}
               <button
                 onClick={() => setShowStopConfirm(true)}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg whitespace-nowrap"
               >
                 Stop & Unsubscribe
               </button>
