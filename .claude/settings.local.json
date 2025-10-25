@@ -7,7 +7,16 @@
       "Bash(git push:*)",
       "Bash(git remote add:*)",
       "Bash(gh run list:*)",
-      "Bash(source:*)"
+      "Bash(source:*)",
+      "mcp__playwright__playwright_screenshot",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(pnpm add:*)",
+      "Bash(openssl rand:*)",
+      "mcp__playwright__playwright_navigate",
+      "mcp__playwright__playwright_click",
+      "Read(//Users/trilliumsmith/Downloads/**)",
+      "Bash(pnpm build:*)"
     ],
     "deny": [],
     "ask": []
