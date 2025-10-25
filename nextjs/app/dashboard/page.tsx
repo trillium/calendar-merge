@@ -57,6 +57,7 @@ export default function Dashboard() {
     }, 3000);
 
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [syncProgress]);
 
   async function checkAuthAndLoadStatus() {
