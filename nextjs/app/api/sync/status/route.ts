@@ -6,7 +6,7 @@ import { Firestore } from '@google-cloud/firestore';
 
 const firestore = new Firestore();
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
 
   if (!session.isLoggedIn || !session.userId) {
@@ -20,24 +20,30 @@ export async function POST(req: NextRequest) {
       .where('userId', '==', session.userId)
       .get();
 
-    // Update all watches to active
-    const batch = firestore.batch();
-    watchesSnapshot.docs.forEach(doc => {
-      batch.update(doc.ref, { paused: false });
+    const watches = watchesSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        calendarId: data.calendarId,
+        expiration: data.expiration,
+        paused: data.paused || false,
+        targetCalendarId: data.targetCalendarId,
+      };
     });
-    await batch.commit();
+
+    // Get user config
+    const userDoc = await firestore.collection('users').doc(session.userId).get();
+    const userData = userDoc.data();
 
     return NextResponse.json({
-      success: true,
-      message: `Resumed ${watchesSnapshot.size} watch(es)`
+      watches,
+      config: userData?.config || null,
+      email: userData?.email || null,
     });
   } catch (error) {
-    console.error('Error resuming sync:', error);
+    console.error('Error fetching sync status:', error);
     return NextResponse.json(
-      { error: 'Failed to resume sync' },
+      { error: 'Failed to fetch sync status' },
       { status: 500 }
     );
   }
 }
-
-

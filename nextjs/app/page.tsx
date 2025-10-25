@@ -32,6 +32,12 @@ export default function Home() {
       targetOption,
       targetCalendarId,
       newCalendarName,
+      onSuccess: () => {
+        // Redirect to dashboard after successful setup
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 2000);
+      },
     });
 
   // Check session on mount and handle OAuth callback
@@ -169,12 +175,20 @@ export default function Home() {
             </h1>
           </div>
           {isAuthenticated && (
-            <button
-              onClick={logout}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-            >
-              Logout
-            </button>
+            <div className="flex gap-3">
+              <a
+                href="/dashboard"
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                Dashboard
+              </a>
+              <button
+                onClick={logout}
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
           )}
         </div>
         <p className="text-gray-600 dark:text-gray-300 mb-10 text-lg">
