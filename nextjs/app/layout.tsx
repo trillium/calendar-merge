@@ -1,5 +1,6 @@
 import "./globals.css";
 import Navigation from "./features/Navigation";
+import { AuthProvider } from "./providers/AuthProvider";
 
 export default function RootLayout({
   children,
@@ -9,12 +10,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="h-screen w-screen text-black bg-linear-to-br from-indigo-400 to-purple-600">
-        <div className="h-screen w-screen flex flex-col">
-          <Navigation />
-          <main className="flex flex-1 items-center justify-center">
-            {children}
-          </main>
-        </div>
+        <AuthProvider>
+          <div className="h-screen w-screen flex flex-col">
+            <Navigation />
+            <main className="flex flex-1 items-center justify-center">
+              {children}
+            </main>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

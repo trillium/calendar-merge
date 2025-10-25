@@ -1,33 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "../providers/AuthProvider";
 
 export default function Navigation() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, checkAuth } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  async function checkAuth() {
-    try {
-      const res = await fetch("/api/session");
-      if (res.ok) {
-        const data = await res.json();
-        setIsAuthenticated(data.isLoggedIn);
-      }
-    } catch (err) {
-      console.error("Auth check failed:", err);
-    }
-  }
 
   async function handleLogout() {
     try {
       await fetch("/api/logout", { method: "POST" });
-      setIsAuthenticated(false);
+      await checkAuth();
       router.push("/");
     } catch (err) {
       console.error("Logout failed:", err);
