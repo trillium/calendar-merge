@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Firestore } from '@google-cloud/firestore';
 import { syncCalendarEvents } from './sync';
 import { renewCalendarWatch } from './watch';
+import { batchSyncEvents } from './batchSync';
 import { CONFIG } from './config';
 
 const firestore = new Firestore();
@@ -50,6 +51,29 @@ export const renewWatches = async (req: Request, res: Response): Promise<void> =
     } catch (error) {
         console.error('Error renewing watches:', error);
         res.status(500).send('Error renewing watches');
+    }
+};
+
+/**
+ * HTTP Cloud Function - Batch Sync Handler
+ * Processes a batch of events for initial calendar sync
+ */
+export const batchSync = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { channelId } = req.body;
+
+        if (!channelId) {
+            res.status(400).json({ error: 'channelId is required' });
+            return;
+        }
+
+        console.log(`Batch sync triggered for channel ${channelId}`);
+        await batchSyncEvents(channelId);
+
+        res.status(200).json({ success: true, channelId });
+    } catch (error) {
+        console.error('Error in batch sync handler:', error);
+        res.status(500).json({ error: 'Error processing batch sync' });
     }
 };
 
