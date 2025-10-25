@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-// Stub: Health check endpoint
-export async function GET(req: NextRequest) {
-  return NextResponse.json({ status: 'ok' });
+// Health check endpoint
+export async function GET() {
+  return NextResponse.json({ status: 'healthy', timestamp: new Date().toISOString() });
 }
+
 
