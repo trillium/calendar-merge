@@ -133,22 +133,19 @@ export default function Dashboard() {
                 {watches.map((watch, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg"
+                    className="bg-gray-50 dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700"
                   >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-gray-800 dark:text-gray-200">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                          Source Calendar
+                        </p>
+                        <p className="font-medium text-gray-800 dark:text-gray-200 break-all">
                           {watch.calendarId}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Target: {watch.targetCalendarId}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Expires: {new Date(watch.expiration).toLocaleString()}
                         </p>
                       </div>
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        className={`ml-3 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${
                           watch.paused
                             ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                             : "bg-green-200 text-green-800 dark:bg-green-900 dark:text-green-200"
@@ -156,6 +153,20 @@ export default function Dashboard() {
                       >
                         {watch.paused ? "Paused" : "Active"}
                       </span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <span className="text-gray-500 dark:text-gray-400">Target: </span>
+                        <span className="text-gray-700 dark:text-gray-300 break-all">
+                          {watch.targetCalendarId}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 dark:text-gray-400">Expires: </span>
+                        <span className="text-gray-700 dark:text-gray-300">
+                          {new Date(watch.expiration).toLocaleString()}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}
