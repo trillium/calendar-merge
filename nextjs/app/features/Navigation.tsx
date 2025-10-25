@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../providers/AuthProvider";
 
@@ -31,20 +32,20 @@ export default function Navigation() {
           </h2>
           <div className="flex gap-4">
             {pathname !== "/dashboard" && (
-              <a
+              <Link
                 href="/dashboard"
                 className="text-sm text-white/90 hover:text-white transition-colors"
               >
                 Dashboard
-              </a>
+              </Link>
             )}
             {pathname !== "/" && (
-              <a
+              <Link
                 href="/"
                 className="text-sm text-white/90 hover:text-white transition-colors"
               >
                 Home
-              </a>
+              </Link>
             )}
             <button
               onClick={handleLogout}
