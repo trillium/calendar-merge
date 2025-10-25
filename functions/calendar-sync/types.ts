@@ -21,6 +21,11 @@ export interface WatchData {
         totalEvents?: number;
         lastBatchTime?: number;
         timeMax?: string;
+        // Retry tracking (Phase 3)
+        failedEvents?: string[];
+        retryCount?: number;
+        lastError?: string;
+        lastErrorAt?: Timestamp;
     };
 }
 
@@ -35,4 +40,13 @@ export interface CalendarConfig {
     sourceCalendarIds: string[];
     targetCalendarId: string;
     webhookUrl: string;
+}
+
+export interface SyncCoordination {
+    currentIndex: number;
+    channelIds: string[];
+    status: 'running' | 'complete' | 'failed';
+    createdAt: Timestamp;
+    lastIterationAt: Timestamp;
+    iterationCount: number;
 }
