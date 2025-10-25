@@ -238,6 +238,25 @@ export default function Home() {
             </Stepper>
           </div>
         )}
+
+        {/* Step Indicator */}
+        <div className="flex gap-2 justify-center mt-8">
+          <div
+            className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
+              step >= 1 ? "bg-indigo-600" : "bg-gray-300 dark:bg-gray-600"
+            }`}
+          />
+          <div
+            className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
+              step >= 2 ? "bg-indigo-600" : "bg-gray-300 dark:bg-gray-600"
+            }`}
+          />
+          <div
+            className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
+              step >= 3 ? "bg-indigo-600" : "bg-gray-300 dark:bg-gray-600"
+            }`}
+          />
+        </div>
       </div>
     </div>
   );
