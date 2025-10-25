@@ -14,6 +14,14 @@ export interface WatchData {
         lastSyncTime?: number;
         lastSyncEventCount?: number;
     };
+    syncState?: {
+        status: 'pending' | 'syncing' | 'complete' | 'failed';
+        pageToken?: string;
+        eventsSynced: number;
+        totalEvents?: number;
+        lastBatchTime?: number;
+        timeMax?: string;
+    };
 }
 
 export interface EventMapping {
