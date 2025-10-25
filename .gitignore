@@ -42,6 +42,3 @@ Thumbs.db
 .vercel
 .env.local.bak
 client_secret.json
-
-# Work in progress / temporary discussion docs
-wip/
