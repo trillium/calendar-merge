@@ -25,7 +25,8 @@ export async function POST(req: NextRequest) {
 
     // Clean up any existing watches before creating new ones
     const { cleanupUserWatches } = await import('../../../../functions/calendar-sync/control');
-    const { createCalendarWatch } = await import('../../../../functions/calendar-sync/watch');
+    const { createCalendarWatch, createSyncCoordination } = await import('../../../../functions/calendar-sync/watch');
+    const { enqueueBatchSync } = await import('../../../../functions/calendar-sync/batchSync');
 
     await cleanupUserWatches(userId);
 
@@ -38,8 +39,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Create watch subscriptions
-    let watchesCreated = 0;
+    // Create watch subscriptions and collect channelIds
+    const channelIds: string[] = [];
     const webhookUrl = process.env.WEBHOOK_URL || '';
     if (!webhookUrl) {
       return NextResponse.json({ error: 'Webhook URL not configured' }, { status: 500 });
@@ -47,17 +48,25 @@ export async function POST(req: NextRequest) {
 
     for (const calendarId of sourceCalendars) {
       try {
-        await createCalendarWatch(userId, calendarId, webhookUrl, targetCalendar);
-        watchesCreated++;
+        const channelId = await createCalendarWatch(userId, calendarId, webhookUrl, targetCalendar);
+        channelIds.push(channelId);
       } catch (error) {
         console.error(`Failed to create watch for ${calendarId}:`, error);
       }
     }
 
+    // Create sync coordination for round-robin processing
+    if (channelIds.length > 0) {
+      await createSyncCoordination(userId, channelIds);
+
+      // Enqueue ONE task for round-robin batch sync
+      await enqueueBatchSync(userId, 5);
+    }
+
     return NextResponse.json({
       success: true,
-      watchesCreated,
-      message: `Sync configured for ${watchesCreated} calendars`,
+      watchesCreated: channelIds.length,
+      message: `Sync configured for ${channelIds.length} calendars`,
     });
   } catch (error) {
     console.error('Setup error:', error);
