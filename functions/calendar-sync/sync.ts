@@ -145,7 +145,7 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
 /**
  * Syncs a single event from source to target calendar
  */
-async function syncEvent(
+export async function syncEvent(
     sourceCalendarId: string,
     sourceEventId: string,
     targetCalendarId: string,
