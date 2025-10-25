@@ -22,6 +22,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [watches, setWatches] = useState<Watch[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  const [showStopConfirm, setShowStopConfirm] = useState(false);
 
   useEffect(() => {
     checkAuthAndLoadStatus();
@@ -47,21 +49,19 @@ export default function Dashboard() {
     }
   }
 
-  async function handleStopSync() {
-    if (!confirm("Are you sure you want to stop syncing? This will remove all calendar watches.")) {
-      return;
-    }
-
+  async function confirmStopSync() {
     try {
       const res = await fetch("/api/sync/stop", { method: "POST" });
       if (res.ok) {
-        alert("Sync stopped successfully");
-        router.push("/");
+        setMessage({ text: "Sync stopped successfully. Redirecting...", type: "success" });
+        setTimeout(() => router.push("/"), 2000);
       } else {
-        alert("Failed to stop sync");
+        setMessage({ text: "Failed to stop sync", type: "error" });
       }
     } catch (err) {
-      alert("Error stopping sync");
+      setMessage({ text: "Error stopping sync", type: "error" });
+    } finally {
+      setShowStopConfirm(false);
     }
   }
 
@@ -69,11 +69,13 @@ export default function Dashboard() {
     try {
       const res = await fetch("/api/sync/pause", { method: "POST" });
       if (res.ok) {
-        alert("Sync paused successfully");
+        setMessage({ text: "Sync paused successfully", type: "success" });
         await checkAuthAndLoadStatus();
+      } else {
+        setMessage({ text: "Failed to pause sync", type: "error" });
       }
     } catch (err) {
-      alert("Error pausing sync");
+      setMessage({ text: "Error pausing sync", type: "error" });
     }
   }
 
@@ -81,11 +83,13 @@ export default function Dashboard() {
     try {
       const res = await fetch("/api/sync/resume", { method: "POST" });
       if (res.ok) {
-        alert("Sync resumed successfully");
+        setMessage({ text: "Sync resumed successfully", type: "success" });
         await checkAuthAndLoadStatus();
+      } else {
+        setMessage({ text: "Failed to resume sync", type: "error" });
       }
     } catch (err) {
-      alert("Error resuming sync");
+      setMessage({ text: "Error resuming sync", type: "error" });
     }
   }
 
@@ -115,6 +119,43 @@ export default function Dashboard() {
         {error && (
           <div className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 p-4 rounded-lg mb-6">
             {error}
+          </div>
+        )}
+
+        {message && (
+          <div
+            className={`p-4 rounded-lg mb-6 ${
+              message.type === "success"
+                ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+                : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
+
+        {showStopConfirm && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-400 dark:border-yellow-600 p-6 rounded-lg mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
+              Stop Syncing?
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-4">
+              This will remove all calendar watches and stop syncing events. You'll need to set up sync again if you want to resume.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={confirmStopSync}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg"
+              >
+                Yes, Stop Sync
+              </button>
+              <button
+                onClick={() => setShowStopConfirm(false)}
+                className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold py-2 px-4 rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
 
@@ -218,7 +259,7 @@ export default function Dashboard() {
                 </button>
               )}
               <button
-                onClick={handleStopSync}
+                onClick={() => setShowStopConfirm(true)}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg"
               >
                 Stop & Unsubscribe
