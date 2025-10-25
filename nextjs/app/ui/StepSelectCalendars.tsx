@@ -28,20 +28,24 @@ export default function StepSelectCalendars({
       <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
         Choose which calendars you want to merge.
       </p>
-      {loading ? (
-        <div
-          className="text-center text-indigo-500 font-semibold"
-          id="loadingCalendars"
-        >
-          Loading your calendars...
-        </div>
-      ) : (
-        <CalendarList
-          calendars={calendars}
-          selected={selectedSources}
-          onChange={onChange}
-        />
-      )}
+      <div className="min-h-[300px] flex items-center justify-center">
+        {loading ? (
+          <div
+            className="text-center text-indigo-500 font-semibold"
+            id="loadingCalendars"
+          >
+            Loading your calendars...
+          </div>
+        ) : (
+          <div className="w-full">
+            <CalendarList
+              calendars={calendars}
+              selected={selectedSources}
+              onChange={onChange}
+            />
+          </div>
+        )}
+      </div>
     </>
   );
 }

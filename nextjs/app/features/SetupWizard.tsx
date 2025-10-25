@@ -134,7 +134,7 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
   // UI rendering
   return (
     <div className="flex items-center justify-center min-h-screen p-6">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-xl w-full p-10 sm:p-12">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full p-10 sm:p-12">
         <h1 className="text-gray-800 dark:text-gray-100 text-3xl font-bold mb-4">
           📅 Calendar Merge Service
         </h1>
@@ -142,9 +142,9 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
           Sync multiple Google Calendars into one master calendar
         </p>
 
-        {/* Step 1: Connect Google */}
-        {step === 1 && (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-8 shadow-md">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-8 shadow-md min-h-[500px]">
+          {/* Step 1: Connect Google */}
+          {step === 1 && (
             <Stepper
               onNext={handleNext}
               disableBack
@@ -153,12 +153,10 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
             >
               <StepConnect onConnect={startOAuth} authStatus={authStatus} />
             </Stepper>
-          </div>
-        )}
+          )}
 
-        {/* Step 2: Select Calendars */}
-        {step === 2 && (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-8 shadow-md">
+          {/* Step 2: Select Calendars */}
+          {step === 2 && (
             <Stepper
               onNext={handleNext}
               onBack={handleBack}
@@ -172,12 +170,10 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
                 loading={loadingCalendars}
               />
             </Stepper>
-          </div>
-        )}
+          )}
 
-        {/* Step 3: Choose Target */}
-        {step === 3 && (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-4 shadow-md">
+          {/* Step 3: Choose Target */}
+          {step === 3 && (
             <Stepper
               onBack={handleBack}
               backLabel="Back"
@@ -198,8 +194,8 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
                 onSetupSync={setupSync}
               />
             </Stepper>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Step Indicator */}
         <div className="flex gap-2 justify-center mt-8">
