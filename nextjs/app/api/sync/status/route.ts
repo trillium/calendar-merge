@@ -74,13 +74,52 @@ export async function GET() {
           lastSyncTime: null,
           lastSyncEventCount: null,
         },
+        syncState: data.syncState || null,
       };
     }));
+
+    // Aggregate sync state across all watches
+    const syncStates = watches
+      .filter(w => w.syncState)
+      .map(w => w.syncState);
+
+    let overallStatus: 'pending' | 'syncing' | 'complete' | 'failed' = 'complete';
+    let totalEvents = 0;
+    let syncedEvents = 0;
+
+    if (syncStates.length > 0) {
+      // If any watch is failed, overall status is failed
+      if (syncStates.some(s => s?.status === 'failed')) {
+        overallStatus = 'failed';
+      }
+      // If any watch is syncing, overall status is syncing
+      else if (syncStates.some(s => s?.status === 'syncing')) {
+        overallStatus = 'syncing';
+      }
+      // If any watch is pending, overall status is pending
+      else if (syncStates.some(s => s?.status === 'pending')) {
+        overallStatus = 'pending';
+      }
+      // Otherwise all are complete
+
+      // Sum up events
+      syncStates.forEach(s => {
+        if (s) {
+          syncedEvents += s.eventsSynced || 0;
+          totalEvents += s.totalEvents || s.eventsSynced || 0;
+        }
+      });
+    }
 
     return NextResponse.json({
       watches,
       config: userData?.config || null,
       email: userData?.email || null,
+      syncProgress: {
+        overallStatus,
+        totalEvents,
+        syncedEvents,
+      },
     });
   } catch (error) {
     console.error('Error fetching sync status:', error);
