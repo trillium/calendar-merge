@@ -107,8 +107,8 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
             const event = events[i];
             if (!event.id) continue;
 
-            const synced = await syncEvent(calendarId, event.id, targetCalendarId, calendar);
-            if (synced) syncedCount++;
+            const result = await syncEvent(calendarId, event.id, targetCalendarId, calendar);
+            if (result.success) syncedCount++;
 
             // Rate limiting: delay between events to avoid quota exhaustion
             // Skip delay on last event
@@ -144,13 +144,14 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
 
 /**
  * Syncs a single event from source to target calendar
+ * Returns {success, eventId} to enable retry tracking
  */
 export async function syncEvent(
     sourceCalendarId: string,
     sourceEventId: string,
     targetCalendarId: string,
     calendarClient: calendar_v3.Calendar
-): Promise<boolean> {
+): Promise<{success: boolean, eventId?: string}> {
     try {
         // Use composite key as document ID to avoid need for Firestore index
         const mappingId = `${sourceCalendarId}_${sourceEventId}`;
@@ -167,7 +168,7 @@ export async function syncEvent(
 
         if (!sourceEvent.data) {
             console.warn(`Source event ${sourceEventId} not found`);
-            return false;
+            return { success: false };
         }
 
         // Check if event is cancelled
@@ -178,7 +179,7 @@ export async function syncEvent(
                 await deleteTargetEvent(targetCalendarId, mapping.targetEventId, calendarClient);
                 await mappingDoc.ref.delete();
             }
-            return false;
+            return { success: false };
         }
 
         // Get calendar name for labeling
@@ -243,11 +244,23 @@ export async function syncEvent(
             console.log(`Updated event ${targetEventId} in target calendar`);
         }
 
-        return true;
-    } catch (error) {
+        return { success: true };
+    } catch (error: any) {
+        // Check for quota error
+        if (error.code === 403 && error.message?.includes('Quota exceeded')) {
+            console.log(`Quota error for event ${sourceEventId}, will retry`);
+            return { success: false, eventId: sourceEventId };
+        }
+
+        // Check for rate limit error
+        if (error.code === 429 || error.message?.includes('Rate Limit Exceeded')) {
+            console.log(`Rate limit error for event ${sourceEventId}, will retry`);
+            return { success: false, eventId: sourceEventId };
+        }
+
+        // Other errors - log and continue
         console.error(`Error syncing event ${sourceEventId}:`, error);
-        // Continue processing other events
-        return false;
+        return { success: false };
     }
 }
 
