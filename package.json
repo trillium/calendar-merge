@@ -27,7 +27,10 @@
     "github:update-secrets:gcp": "./scripts/github-update-secrets.sh",
     "functions:list": "source .env.gcp && gcloud functions list --regions=$REGION",
     "api:url": "./scripts/get-api-url.sh",
-    "dev:nextjs": "pnpm --filter ./nextjs dev"
+    "dev:nextjs": "pnpm --filter ./nextjs dev",
+    "monitor": "./scripts/monitor-sync.sh",
+    "logs:batchSync": "gcloud functions logs read batchSync --gen2 --region=us-central1 --limit=50",
+    "logs:webhook": "gcloud functions logs read handleWebhook --gen2 --region=us-central1 --limit=50"
   },
   "workspaces": [
     "functions/*",
