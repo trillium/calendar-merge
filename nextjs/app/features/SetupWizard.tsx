@@ -133,7 +133,6 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
 
   // UI rendering
   return (
-    <div className="flex items-center justify-center min-h-screen p-6">
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full p-10 sm:p-12">
         <h1 className="text-gray-800 dark:text-gray-100 text-3xl font-bold mb-4">
           📅 Calendar Merge Service
@@ -216,6 +215,5 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
           />
         </div>
       </div>
-    </div>
   );
 }
