@@ -28,7 +28,6 @@ export default function Home() {
   // useSetupSync hook
   const { setupStatus, setupBtnDisabled, validateSetupBtn, setupSync } =
     useSetupSync({
-      accessToken: userId, // Pass userId instead of accessToken
       selectedSources,
       targetOption,
       targetCalendarId,

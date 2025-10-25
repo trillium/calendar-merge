@@ -3,14 +3,12 @@ import { setupCalendarSync } from "../lib/api";
 import { createCalendar } from "../lib/calendarUtils";
 
 export function useSetupSync({
-  accessToken,
   selectedSources,
   targetOption,
   targetCalendarId,
   newCalendarName,
   onSuccess,
 }: {
-  accessToken: string | null;
   selectedSources: string[];
   targetOption: string;
   targetCalendarId: string;
@@ -39,7 +37,7 @@ export function useSetupSync({
           message: "Creating new calendar...",
           type: "success",
         });
-        const newCalendar = await createCalendar(accessToken!, newCalendarName.trim());
+        const newCalendar = await createCalendar(newCalendarName.trim());
         finalTargetCalendarId = newCalendar.id;
         setSetupStatus({
           message: `Created calendar "${newCalendar.summary}". Setting up sync...`,
@@ -47,7 +45,6 @@ export function useSetupSync({
         });
       }
       const data = await setupCalendarSync({
-        accessToken: accessToken!,
         selectedSources,
         targetCalendarId: finalTargetCalendarId,
       });

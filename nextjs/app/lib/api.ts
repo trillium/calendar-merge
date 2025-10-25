@@ -11,19 +11,16 @@ export async function oauthCallback(code: string) {
 }
 
 export async function setupCalendarSync({
-  accessToken,
   selectedSources,
   targetCalendarId,
 }: {
-  accessToken: string;
   selectedSources: string[];
   targetCalendarId: string;
 }) {
-  const response = await fetch(`${API_URL}/setup`, {
+  const response = await fetch('/api/setup', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({
       sourceCalendars: selectedSources,
