@@ -1,10 +1,8 @@
 import { google } from 'googleapis';
-import { Firestore } from '@google-cloud/firestore';
+import { Firestore, FieldValue } from '@google-cloud/firestore';
 import { getAuthClient } from './auth';
 import { WatchData } from './types';
 import { CONFIG } from './config';
-import { syncEvent } from './sync';
-import { enqueueBatchSync } from './batchSync';
 
 const firestore = new Firestore();
 const calendar = google.calendar('v3');
@@ -72,10 +70,7 @@ export async function createCalendarWatch(
             .doc(channelId)
             .set(watchData);
 
-        // Enqueue first batch sync task
-        await enqueueBatchSync(channelId, 5);
-
-        console.log(`Watch created for calendar ${calendarId}, batch sync enqueued`);
+        console.log(`Watch created for calendar ${calendarId}`);
         return channelId;
     } catch (error) {
         console.error(`Error creating watch for calendar ${calendarId}:`, error);
@@ -140,4 +135,35 @@ export async function stopCalendarWatch(userId: string, channelId: string, resou
         console.error(`Error stopping watch ${channelId}:`, error);
         // Don't throw - watch might already be expired
     }
+}
+
+/**
+ * Creates sync coordination state for round-robin batch processing
+ * Stores coordination as nested field in existing users/{userId} document
+ */
+export async function createSyncCoordination(userId: string, channelIds: string[]): Promise<void> {
+    const userRef = firestore.collection('users').doc(userId);
+
+    // Check for existing running sync
+    const existing = await userRef.get();
+    if (existing.exists) {
+        const syncCoord = existing.data()?.syncCoordination;
+        if (syncCoord?.status === 'running') {
+            throw new Error('Sync already in progress for this user');
+        }
+    }
+
+    // Store coordination as nested object in user document (merge preserves other fields)
+    await userRef.set({
+        syncCoordination: {
+            currentIndex: 0,
+            channelIds,  // Array of watch channelIds to process in round-robin
+            status: 'running',
+            createdAt: FieldValue.serverTimestamp(),
+            lastIterationAt: FieldValue.serverTimestamp(),
+            iterationCount: 0,
+        }
+    }, { merge: true });
+
+    console.log(`Sync coordination created for user ${userId} with ${channelIds.length} calendars`);
 }
