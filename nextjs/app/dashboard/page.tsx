@@ -104,7 +104,7 @@ export default function Dashboard() {
   return (
     <div className="flex items-center justify-center min-h-screen p-6">
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full p-10">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-8">
           <h1 className="text-gray-800 dark:text-gray-100 text-3xl font-bold">
             📊 Sync Dashboard
           </h1>
