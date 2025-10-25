@@ -52,7 +52,7 @@ export async function createCalendarWatch(
             resourceId: response.data.resourceId || '',
             expiration,
             targetCalendarId,
-            syncToken: initialSyncToken ?? undefined,
+            syncToken: initialSyncToken || null,
         };
 
         await firestore
