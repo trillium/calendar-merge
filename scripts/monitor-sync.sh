@@ -86,8 +86,6 @@ tail_function_logs() {
   while true; do
     # Get recent logs
     logs=$(gcloud functions logs read "$function_name" \
-      --gen2 \
-      --region="$REGION" \
       --limit=20 \
       --format="value(log)" 2>/dev/null || echo "")
 
@@ -105,10 +103,10 @@ tail_function_logs() {
 # Check if functions exist
 echo -e "${GRAY}Checking for deployed functions...${NC}"
 
-FUNCTIONS=$(gcloud functions list --gen2 --region="$REGION" --format="value(name)" 2>/dev/null || echo "")
+FUNCTIONS=$(gcloud functions list --format="value(name)" 2>/dev/null || echo "")
 
 if [ -z "$FUNCTIONS" ]; then
-  echo -e "${RED}Error: No functions found in region ${REGION}${NC}"
+  echo -e "${RED}Error: No functions found${NC}"
   echo -e "${YELLOW}Make sure you have deployed your Cloud Functions${NC}"
   exit 1
 fi

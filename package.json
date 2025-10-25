@@ -12,6 +12,8 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "auth:setup": "./scripts/use-gcloud-auth.sh",
+    "setup:cloud-tasks": "./scripts/setup-cloud-tasks-queue.sh",
+    "setup:cloud-tasks-permissions": "./scripts/setup-cloud-tasks-permissions.sh",
     "deploy:handleWebhook": "./scripts/deploy/deploy-handleWebhook.sh",
     "deploy:renewWatches": "./scripts/deploy/deploy-renewWatches.sh",
     "deploy:triggerInitialSync": "./scripts/deploy/deploy-triggerInitialSync.sh",
@@ -29,8 +31,9 @@
     "api:url": "./scripts/get-api-url.sh",
     "dev:nextjs": "pnpm --filter ./nextjs dev",
     "monitor": "./scripts/monitor-sync.sh",
-    "logs:batchSync": "gcloud functions logs read batchSync --gen2 --region=us-central1 --limit=50",
-    "logs:webhook": "gcloud functions logs read handleWebhook --gen2 --region=us-central1 --limit=50"
+    "logs:batchSync": "gcloud functions logs read batchSync --limit=${LIMIT:-50}",
+    "logs:webhook": "gcloud functions logs read handleWebhook --limit=${LIMIT:-50}",
+    "cleanup:watches": "pnpm --filter calendar-sync-function exec node cleanup-orphaned-watches.js"
   },
   "workspaces": [
     "functions/*",
