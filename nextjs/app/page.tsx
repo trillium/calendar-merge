@@ -131,11 +131,6 @@ export default function Home() {
     setSelectedSources((prev) =>
       e.target.checked ? [...prev, value] : prev.filter((id) => id !== value)
     );
-    if (e.target.checked && selectedSources.length === 0) {
-      setStep(3);
-    } else if (!e.target.checked && selectedSources.length === 1) {
-      setStep(2);
-    }
   }
 
   function handleTargetOptionChange(e: React.ChangeEvent<HTMLInputElement>) {
