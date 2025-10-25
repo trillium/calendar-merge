@@ -76,6 +76,36 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
     validateSetupBtn,
   ]);
 
+  // Auto-select calendars from environment variables (for testing)
+  useEffect(() => {
+    if (calendars.length > 0 && selectedSources.length === 0) {
+      const testPickedCalendars = process.env.NEXT_PUBLIC_TEST_PICKED_CALENDARS;
+      const testTargetCalendar = process.env.NEXT_PUBLIC_TEST_TARGET_CALENDAR;
+
+      // Auto-select source calendars
+      if (testPickedCalendars) {
+        const pickedNames = testPickedCalendars.split(',').map(s => s.trim());
+        const matchingIds = calendars
+          .filter((cal) => pickedNames.includes(cal.summary))
+          .map((cal) => cal.id);
+
+        if (matchingIds.length > 0) {
+          setSelectedSources(matchingIds);
+        }
+      }
+
+      // Auto-select target calendar
+      if (testTargetCalendar) {
+        const targetCal = calendars.find(
+          (cal) => cal.summary === testTargetCalendar
+        );
+        if (targetCal) {
+          setTargetCalendarId(targetCal.id);
+        }
+      }
+    }
+  }, [calendars, selectedSources.length]);
+
   function startOAuth() {
     window.location.href = "/api/oauth/start";
   }
