@@ -2,10 +2,10 @@
 // Update allowedOrigins as needed for your deployment
 import { NextRequest, NextResponse } from 'next/server'
 
-const allowedOrigins = [
-  'http://localhost:3000', // local dev
-  'https://your-production-domain.com', // production
-]
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean)
 
 const corsOptions = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
