@@ -3,19 +3,28 @@ import { Firestore } from '@google-cloud/firestore';
 import { getAuthClient } from './auth';
 import { WatchData } from './types';
 import { CONFIG } from './config';
+import { syncEvent } from './sync';
 
 const firestore = new Firestore();
 const calendar = google.calendar('v3');
 
+// Rate limiting: delay between API calls to respect Google's quotas
+const RATE_LIMIT_DELAY_MS = 150; // 150ms delay = ~6-7 requests/second, well under 10/second limit
+
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /**
  * Creates a new watch subscription for a calendar
+ * Returns the channelId for triggering initial sync
  */
 export async function createCalendarWatch(
     userId: string,
     calendarId: string,
     webhookUrl: string,
     targetCalendarId?: string
-): Promise<void> {
+): Promise<string> {
     const auth = await getAuthClient(userId);
     const calendar = google.calendar({ version: 'v3', auth });
     // Encode channel ID to only use allowed characters: [A-Za-z0-9\-_\+/=]+
@@ -67,6 +76,7 @@ export async function createCalendarWatch(
             .set(watchData);
 
         console.log(`Watch created for calendar ${calendarId}`);
+        return channelId;
     } catch (error) {
         console.error(`Error creating watch for calendar ${calendarId}:`, error);
         throw error;
