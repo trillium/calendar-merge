@@ -93,6 +93,20 @@ export default function Home() {
     window.location.href = "/api/oauth/start";
   }
 
+  async function logout() {
+    try {
+      await fetch("/api/logout", { method: "POST" });
+      setIsAuthenticated(false);
+      setUserId(null);
+      setCalendars([]);
+      setSelectedSources([]);
+      setStep(1);
+      setAuthStatus(null);
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  }
+
   async function loadCalendars() {
     setLoadingCalendars(true);
     try {
@@ -153,9 +167,21 @@ export default function Home() {
   return (
     <div className="flex items-center justify-center min-h-screen p-6">
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-xl w-full p-10 sm:p-12">
-        <h1 className="text-gray-800 dark:text-gray-100 mb-4 text-3xl font-bold">
-          📅 Calendar Merge Service
-        </h1>
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h1 className="text-gray-800 dark:text-gray-100 text-3xl font-bold">
+              📅 Calendar Merge Service
+            </h1>
+          </div>
+          {isAuthenticated && (
+            <button
+              onClick={logout}
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            >
+              Logout
+            </button>
+          )}
+        </div>
         <p className="text-gray-600 dark:text-gray-300 mb-10 text-lg">
           Sync multiple Google Calendars into one master calendar
         </p>
