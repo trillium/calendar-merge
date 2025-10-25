@@ -1,3 +1,15 @@
+/**
+ * @deprecated This file is deprecated. OAuth flow has been migrated to Next.js.
+ *
+ * All OAuth and setup endpoints are now handled by Next.js API routes:
+ * - /api/oauth/start
+ * - /api/oauth/callback
+ * - /api/setup
+ *
+ * This file is kept for reference and test compatibility only.
+ * It is no longer used by the GCP Cloud Functions API gateway.
+ */
+
 import { Request, Response } from 'express';
 import { google } from 'googleapis';
 import { Firestore } from '@google-cloud/firestore';

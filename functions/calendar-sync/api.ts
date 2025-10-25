@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { oauthStart, oauthCallback, setup } from './oauth';
 import { pauseSync, resumeSync, stopSync, restartSync, clearUserData } from './control';
 import cors from 'cors';
 
@@ -29,20 +28,7 @@ export const api = async (req: Request, res: Response): Promise<void> => {
 
         console.log(`API Gateway: ${method} ${path}`);
 
-        // OAuth endpoints
-        if (path === '/oauth/start' && method === 'GET') {
-            return await oauthStart(req, res);
-        }
-
-        if (path === '/oauth/callback' && method === 'POST') {
-            return await oauthCallback(req, res);
-        }
-
-        if (path === '/setup' && method === 'POST') {
-            return await setup(req, res);
-        }
-
-        // Control endpoints
+        // Control endpoints (OAuth and setup now handled by Next.js)
         if (path === '/sync/pause' && method === 'POST') {
             return await pauseSync(req, res);
         }

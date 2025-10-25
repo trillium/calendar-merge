@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { Firestore } from '@google-cloud/firestore';
 import { syncCalendarEvents } from './sync';
 import { renewCalendarWatch } from './watch';
-import { oauthStart, oauthCallback, setup } from './oauth';
 import { CONFIG } from './config';
 
 const firestore = new Firestore();
@@ -55,6 +54,7 @@ export const renewWatches = async (req: Request, res: Response): Promise<void> =
 };
 
 /**
- * HTTP Cloud Function - Main API Gateway (OAuth + Control endpoints)
+ * HTTP Cloud Function - Main API Gateway (Control endpoints only)
+ * Note: OAuth and setup endpoints are now handled by Next.js
  */
 export { api } from './api';
