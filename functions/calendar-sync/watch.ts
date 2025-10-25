@@ -55,8 +55,8 @@ export async function createCalendarWatch(
             syncToken: initialSyncToken || null,
             stats: {
                 totalEventsSynced: 0,
-                lastSyncTime: undefined,
-                lastSyncEventCount: undefined,
+                lastSyncTime: null,
+                lastSyncEventCount: null,
             },
         };
 
