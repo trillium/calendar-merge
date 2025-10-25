@@ -14,7 +14,6 @@ interface SetupWizardProps {
 
 export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
   // State
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [, setUserId] = useState<string | null>(null);
   const [calendars, setCalendars] = useState<
     import("../lib/calendarUtils").Calendar[]
@@ -57,7 +56,6 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
       const res = await fetch("/api/session");
       if (res.ok) {
         const data = await res.json();
-        setIsAuthenticated(data.isLoggedIn);
         setUserId(data.userId);
         setStep(2);
         await loadCalendars();
@@ -80,20 +78,6 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
 
   function startOAuth() {
     window.location.href = "/api/oauth/start";
-  }
-
-  async function logout() {
-    try {
-      await fetch("/api/logout", { method: "POST" });
-      setIsAuthenticated(false);
-      setUserId(null);
-      setCalendars([]);
-      setSelectedSources([]);
-      setStep(1);
-      setAuthStatus(null);
-    } catch (err) {
-      console.error("Logout failed:", err);
-    }
   }
 
   async function loadCalendars() {
@@ -151,29 +135,9 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
   return (
     <div className="flex items-center justify-center min-h-screen p-6">
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-xl w-full p-10 sm:p-12">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h1 className="text-gray-800 dark:text-gray-100 text-3xl font-bold">
-              📅 Calendar Merge Service
-            </h1>
-          </div>
-          {isAuthenticated && (
-            <div className="flex gap-3">
-              <a
-                href="/dashboard"
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-              >
-                Dashboard
-              </a>
-              <button
-                onClick={logout}
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
+        <h1 className="text-gray-800 dark:text-gray-100 text-3xl font-bold mb-4">
+          📅 Calendar Merge Service
+        </h1>
         <p className="text-gray-600 dark:text-gray-300 mb-10 text-lg">
           Sync multiple Google Calendars into one master calendar
         </p>
