@@ -15,12 +15,24 @@ interface Watch {
     lastSyncTime: number | null;
     lastSyncEventCount: number | null;
   };
+  syncState?: {
+    status: 'pending' | 'syncing' | 'complete' | 'failed';
+    eventsSynced: number;
+    totalEvents?: number;
+  };
+}
+
+interface SyncProgress {
+  overallStatus: 'pending' | 'syncing' | 'complete' | 'failed';
+  totalEvents: number;
+  syncedEvents: number;
 }
 
 export default function Dashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [watches, setWatches] = useState<Watch[]>([]);
+  const [syncProgress, setSyncProgress] = useState<SyncProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
@@ -29,6 +41,23 @@ export default function Dashboard() {
     checkAuthAndLoadStatus();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Poll for sync progress
+  useEffect(() => {
+    if (!syncProgress) return;
+
+    // Stop polling if sync is complete or failed
+    if (syncProgress.overallStatus === 'complete' || syncProgress.overallStatus === 'failed') {
+      return;
+    }
+
+    // Poll every 3 seconds while syncing
+    const interval = setInterval(() => {
+      checkAuthAndLoadStatus();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [syncProgress]);
 
   async function checkAuthAndLoadStatus() {
     try {
@@ -42,6 +71,7 @@ export default function Dashboard() {
       if (statusRes.ok) {
         const data = await statusRes.json();
         setWatches(data.watches || []);
+        setSyncProgress(data.syncProgress || null);
       }
     } catch {
       setError("Failed to load sync status");
@@ -153,6 +183,48 @@ export default function Dashboard() {
                 Cancel
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Sync Progress Indicator */}
+        {syncProgress && syncProgress.overallStatus !== 'complete' && (
+          <div className="bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-400 dark:border-blue-600 p-6 rounded-lg mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
+              {syncProgress.overallStatus === 'pending' && '⏳ Setting up sync...'}
+              {syncProgress.overallStatus === 'syncing' && '🔄 Syncing events...'}
+              {syncProgress.overallStatus === 'failed' && '❌ Sync failed'}
+            </h3>
+            {syncProgress.overallStatus === 'syncing' && (
+              <div>
+                <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  <span>Progress</span>
+                  <span>
+                    {syncProgress.syncedEvents}
+                    {syncProgress.totalEvents > 0 ? ` / ${syncProgress.totalEvents}` : ''} events
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                  <div
+                    className="bg-blue-600 h-3 transition-all duration-300"
+                    style={{
+                      width: syncProgress.totalEvents > 0
+                        ? `${Math.min((syncProgress.syncedEvents / syncProgress.totalEvents) * 100, 100)}%`
+                        : '50%'
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+            {syncProgress.overallStatus === 'pending' && (
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Please wait while we set up your calendar sync...
+              </p>
+            )}
+            {syncProgress.overallStatus === 'failed' && (
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Sync failed. Please try again or contact support.
+              </p>
+            )}
           </div>
         )}
 
