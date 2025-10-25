@@ -624,32 +624,42 @@ Setup API → createCalendarWatch() → enqueueBatchSync() → Cloud Task → ba
 - Alerts fire on error conditions
 - Dashboard shows key metrics
 
-### Task 7.2: Update Documentation ⏸️
+### Task 7.2: Update Documentation ✅
 
-- [ ] Update README.md with batch sync architecture
-- [ ] Add troubleshooting guide for sync issues
-- [ ] Document environment variables
-- [ ] Add deployment instructions
+**Status:** ✅ COMPLETED - Commit: b0b7742
+
+- [x] Update README.md with batch sync architecture
+- [x] Add troubleshooting guide for sync issues
+- [x] Document environment variables
+- [x] Add deployment instructions
+
+**Updates made:**
+- Enhanced ARCHITECTURE.md with batch sync flows, rate limiting, performance metrics
+- Updated README.md with env vars, deployment commands, troubleshooting section
+- Documented sync state management and status transitions
 
 **Acceptance Criteria:**
-- Deployment instructions are complete and accurate
-- Common issues have documented solutions
+- ✅ Deployment instructions are complete and accurate
+- ✅ Common issues have documented solutions
 
-### Task 7.3: Cleanup Old Code (Optional) ⏸️
+### Task 7.3: Cleanup Old Code (Optional) ✅
+
+**Status:** ✅ COMPLETED - Already cleaned up during implementation
 
 **Current state:**
-- `triggerInitialSync` exists in `functions/calendar-sync/index.ts:61-82`
-- Currently being called by `nextjs/app/api/setup/route.ts` via TRIGGER_INITIAL_SYNC_URL
-- Calls `performInitialSync()` from `functions/calendar-sync/initialSync.ts`
+- ✅ `triggerInitialSync` function has been removed from index.ts
+- ✅ `initialSync.ts` file does not exist (already deleted)
+- ✅ No references to `TRIGGER_INITIAL_SYNC_URL` in codebase
+- ✅ All imports are in use
 
-- [ ] Remove deprecated `triggerInitialSync` function from index.ts
-- [ ] Remove `performInitialSync` function from initialSync.ts (or entire file)
-- [ ] Remove `TRIGGER_INITIAL_SYNC_URL` environment variable references
-- [ ] Clean up unused imports
+**Changes made:**
+- Removed during Phase 3 implementation
+- Only `batchSync` handler remains in index.ts
+- Setup flow now uses `createCalendarWatch()` → `enqueueBatchSync()`
 
 **Acceptance Criteria:**
-- No dead code in repository
-- All imports used
+- ✅ No dead code in repository
+- ✅ All imports used
 
 ---
 
