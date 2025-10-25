@@ -2,6 +2,10 @@
   "name": "calendar-merge-service",
   "private": true,
   "version": "1.0.0",
+  "packageManager": "pnpm@10.15.1",
+  "engines": {
+    "node": "22"
+  },
   "scripts": {
     "build": "pnpm --filter calendar-sync-function run gcp-build",
     "dev": "concurrently -n server,client -c cyan,magenta \"pnpm dev:server\" \"pnpm dev:client\"",
