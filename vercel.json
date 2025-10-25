@@ -3,6 +3,5 @@
   "buildCommand": "pnpm --filter nextjs build",
   "devCommand": "pnpm --filter nextjs dev",
   "installCommand": "pnpm install",
-  "framework": null,
-  "outputDirectory": "nextjs/.next"
+  "framework": null
 }
