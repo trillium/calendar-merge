@@ -66,18 +66,115 @@ To refresh credentials: `pnpm auth:setup`
 
 ## Architecture
 
-- **Source Calendars** → Push notifications → **Cloud Functions**
-- **Cloud Functions** → Read/Write → **Firestore** (mappings)
-- **Cloud Functions** → Write → **Target Calendar**
-- **Cloud Scheduler** → Renew watches daily
+- **Source Calendars** → Push notifications → **handleWebhook Function**
+- **handleWebhook** → Real-time incremental sync → **Target Calendar**
+- **Cloud Tasks** → Orchestrates → **batchSync Function** (initial sync)
+- **batchSync** → Processes events in batches → **Target Calendar**
+- **Firestore** → Stores event mappings & sync state
+- **Cloud Scheduler** → Renews watches daily
+
+See [Architecture Documentation](docs/ARCHITECTURE.md) for details.
+
+## Environment Variables
+
+### Required for Cloud Functions
+
+Set these when deploying the `batchSync` function:
+
+```bash
+PROJECT_ID=your-gcp-project-id
+PROJECT_NUMBER=123456789012  # Get from: terraform output project_number
+REGION=us-central1           # Or your deployment region
+```
+
+### Required for Next.js (Vercel)
+
+```bash
+FUNCTION_URL=https://REGION-PROJECT_ID.cloudfunctions.net
+PROJECT_ID=your-gcp-project-id
+REGION=us-central1
+```
+
+## Deployment
+
+### Individual Functions
+
+```bash
+# Deploy batch sync function
+pnpm deploy:batchSync
+
+# Deploy webhook handler
+pnpm deploy:handleWebhook
+
+# Deploy watch renewal
+pnpm deploy:renewWatches
+
+# Deploy all functions
+pnpm deploy:functions
+```
+
+### Grant Permissions
+
+After deploying `batchSync`, grant Cloud Tasks permission to invoke it:
+
+```bash
+./scripts/deploy/grant-batchSync-permissions.sh
+```
+
+## Troubleshooting
+
+### Sync Status Shows "Failed"
+
+1. Check Cloud Function logs:
+   ```bash
+   gcloud functions logs read batchSync --gen2 --region=us-central1 --limit=50
+   ```
+
+2. Check for common issues:
+   - Missing environment variables (PROJECT_ID, PROJECT_NUMBER)
+   - Insufficient IAM permissions
+   - Google Calendar API quota exceeded
+
+### Events Not Syncing
+
+1. Verify watch is active:
+   - Check Firestore `watches` collection
+   - Confirm `syncState.status = 'complete'`
+
+2. Check webhook delivery:
+   ```bash
+   gcloud functions logs read handleWebhook --gen2 --region=us-central1 --limit=50
+   ```
+
+3. Verify API access:
+   - OAuth consent screen configured
+   - Calendar API enabled
+   - Service account has calendar access
+
+### Slow Initial Sync
+
+This is expected for large calendars:
+- 50 events per batch
+- 150ms delay between events (rate limiting)
+- Example: 500 events = ~90 seconds
+
+Check progress in Firestore: `watches/{channelId}/syncState`
 
 ## Project Structure
 
 ```
-├── terraform/          # Infrastructure as code
-├── functions/          # Cloud Function source code
-├── scripts/           # Automation scripts
-└── docs/              # Documentation
+├── terraform/              # Infrastructure as code
+│   └── main.tf            # Cloud Tasks, Firestore, IAM
+├── functions/             # Cloud Function source code
+│   └── calendar-sync/
+│       ├── batchSync.ts   # Async initial sync
+│       ├── watch.ts       # Watch management
+│       └── sync.ts        # Event sync logic
+├── nextjs/                # Frontend web app
+├── scripts/               # Automation scripts
+│   └── deploy/            # Deployment scripts
+└── docs/                  # Documentation
+    └── ARCHITECTURE.md    # System architecture
 ```
 
 ## Manual Steps Required
