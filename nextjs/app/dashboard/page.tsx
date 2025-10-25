@@ -96,8 +96,12 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-600 dark:text-gray-300">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen p-6">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full p-10">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-gray-600 dark:text-gray-300 text-lg">Loading...</div>
+          </div>
+        </div>
       </div>
     );
   }
