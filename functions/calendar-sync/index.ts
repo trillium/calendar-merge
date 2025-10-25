@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { Firestore } from '@google-cloud/firestore';
 import { syncCalendarEvents } from './sync';
 import { renewCalendarWatch } from './watch';
-import { batchSyncEvents } from './batchSync';
+import { batchSyncEvents, batchSyncRoundRobin } from './batchSync';
 import { CONFIG } from './config';
 
 const firestore = new Firestore();
@@ -56,21 +56,25 @@ export const renewWatches = async (req: Request, res: Response): Promise<void> =
 
 /**
  * HTTP Cloud Function - Batch Sync Handler
- * Processes a batch of events for initial calendar sync
+ * Processes calendars in round-robin order for initial sync
  */
 export const batchSync = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { channelId } = req.body;
+        const { userId, channelId } = req.body;
 
-        if (!channelId) {
-            res.status(400).json({ error: 'channelId is required' });
+        // Support both new (userId) and old (channelId) API for backward compatibility
+        if (userId) {
+            console.log(`Round-robin batch sync triggered for user ${userId}`);
+            await batchSyncRoundRobin(userId);
+            res.status(200).json({ success: true, userId });
+        } else if (channelId) {
+            console.log(`Legacy batch sync triggered for channel ${channelId}`);
+            await batchSyncEvents(channelId);
+            res.status(200).json({ success: true, channelId });
+        } else {
+            res.status(400).json({ error: 'userId or channelId is required' });
             return;
         }
-
-        console.log(`Batch sync triggered for channel ${channelId}`);
-        await batchSyncEvents(channelId);
-
-        res.status(200).json({ success: true, channelId });
     } catch (error) {
         console.error('Error in batch sync handler:', error);
         res.status(500).json({ error: 'Error processing batch sync' });
