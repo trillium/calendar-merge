@@ -28,6 +28,7 @@ gcloud services enable \
   cloudbuild.googleapis.com \
   firestore.googleapis.com \
   cloudscheduler.googleapis.com \
+  cloudtasks.googleapis.com \
   logging.googleapis.com \
   secretmanager.googleapis.com
 
