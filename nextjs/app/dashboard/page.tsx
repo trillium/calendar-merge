@@ -175,7 +175,7 @@ export default function Dashboard() {
                               Total Synced
                             </p>
                             <p className="font-semibold text-gray-800 dark:text-gray-200">
-                              {watch.stats.totalEventsSynced} events
+                              {watch.stats?.totalEventsSynced || 0} events
                             </p>
                           </div>
                           <div>
@@ -183,7 +183,7 @@ export default function Dashboard() {
                               Last Sync
                             </p>
                             <p className="font-semibold text-gray-800 dark:text-gray-200">
-                              {watch.stats.lastSyncTime
+                              {watch.stats?.lastSyncTime
                                 ? new Date(watch.stats.lastSyncTime).toLocaleString()
                                 : "Never"}
                             </p>
