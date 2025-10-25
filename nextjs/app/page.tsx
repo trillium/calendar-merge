@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { API_URL } from "./lib/api";
 import { fetchCalendars } from "./lib/calendarUtils";
 import StepConnect from "./ui/StepConnect";
 import StepSelectCalendars from "./ui/StepSelectCalendars";
@@ -11,7 +10,8 @@ import { useSetupSync } from "./hooks/useSetupSync";
 
 export default function Home() {
   // State
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [calendars, setCalendars] = useState<
     import("./lib/calendarUtils").Calendar[]
   >([]);
@@ -28,17 +28,21 @@ export default function Home() {
   // useSetupSync hook
   const { setupStatus, setupBtnDisabled, validateSetupBtn, setupSync } =
     useSetupSync({
-      accessToken,
+      accessToken: userId, // Pass userId instead of accessToken
       selectedSources,
       targetOption,
       targetCalendarId,
       newCalendarName,
     });
 
-  // OAuth callback handling
+  // Check session on mount and handle OAuth callback
   useEffect(() => {
+    checkSessionAndLoadCalendars();
+  }, []);
+
+  async function checkSessionAndLoadCalendars() {
     const params = new URLSearchParams(window.location.search);
-    const accessToken = params.get("access_token");
+    const success = params.get("success");
     const error = params.get("error");
 
     if (error) {
@@ -51,27 +55,29 @@ export default function Home() {
         message = `Authentication error: ${error}`;
       }
       setAuthStatus({ message, type: "error" });
-      // Clean up URL
       window.history.replaceState({}, document.title, "/");
-    } else if (accessToken) {
-      // Handle successful OAuth callback
-      setAccessToken(accessToken);
-      localStorage.setItem("access_token", accessToken);
-      setAuthStatus({ message: "Successfully connected!", type: "success" });
-      setStep(2);
-      loadCalendars(accessToken);
-      // Clean up URL
-      window.history.replaceState({}, document.title, "/");
-    } else {
-      // Check for stored token
-      const storedToken = localStorage.getItem("access_token");
-      if (storedToken) {
-        setAccessToken(storedToken);
-        setStep(2);
-        loadCalendars(storedToken);
-      }
+      return;
     }
-  }, []);
+
+    if (success) {
+      setAuthStatus({ message: "Successfully connected!", type: "success" });
+      window.history.replaceState({}, document.title, "/");
+    }
+
+    // Check session status
+    try {
+      const res = await fetch("/api/session");
+      if (res.ok) {
+        const data = await res.json();
+        setIsAuthenticated(data.isLoggedIn);
+        setUserId(data.userId);
+        setStep(2);
+        await loadCalendars();
+      }
+    } catch (err) {
+      console.error("Session check failed:", err);
+    }
+  }
 
   // Validate setup button
   useEffect(() => {
@@ -85,15 +91,13 @@ export default function Home() {
   ]);
 
   function startOAuth() {
-    window.location.href = `${API_URL}/oauth/start?redirect_uri=${encodeURIComponent(
-      `${window.location.origin}/api/oauth/callback`
-    )}`;
+    window.location.href = "/api/oauth/start";
   }
 
-  async function loadCalendars(token: string) {
+  async function loadCalendars() {
     setLoadingCalendars(true);
     try {
-      const items = await fetchCalendars(token);
+      const items = await fetchCalendars();
       setCalendars(items);
       setLoadingCalendars(false);
     } catch (error: unknown) {

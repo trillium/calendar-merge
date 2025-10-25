@@ -4,30 +4,21 @@ export interface Calendar {
   [key: string]: unknown;
 }
 
-export async function fetchCalendars(token: string) {
-  const response = await fetch(
-    "https://www.googleapis.com/calendar/v3/users/me/calendarList",
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
+export async function fetchCalendars() {
+  const response = await fetch('/api/calendars');
   if (!response.ok) throw new Error("Failed to load calendars");
   const data = await response.json();
-  return data.items || [];
+  return data.calendars;
 }
 
-export async function createCalendar(token: string, summary: string) {
-  const response = await fetch(
-    "https://www.googleapis.com/calendar/v3/calendars",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ summary }),
-    }
-  );
+export async function createCalendar(summary: string) {
+  const response = await fetch('/api/calendars', {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ summary }),
+  });
   if (!response.ok) throw new Error("Failed to create calendar");
   return response.json();
 }
