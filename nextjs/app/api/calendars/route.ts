@@ -4,7 +4,7 @@ import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/app/lib/session';
 import { cookies } from 'next/headers';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
 
   if (!session.isLoggedIn || !session.tokens) {

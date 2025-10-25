@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/app/lib/session';
 import { cookies } from 'next/headers';
@@ -7,7 +7,7 @@ import { google } from 'googleapis';
 
 const firestore = new Firestore();
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
 
   if (!session.isLoggedIn || !session.userId) {
