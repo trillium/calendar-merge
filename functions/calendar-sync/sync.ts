@@ -6,6 +6,13 @@ import { CONFIG } from './config';
 
 const firestore = new Firestore();
 
+// Rate limiting: delay between API calls to respect Google's quotas
+const RATE_LIMIT_DELAY_MS = 150; // 150ms delay = ~6-7 requests/second, well under 10/second limit
+
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /**
  * Syncs calendar events when a webhook notification is received
  */
@@ -43,6 +50,10 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
         let events: calendar_v3.Schema$Event[] = [];
         let newSyncToken: string | null | undefined = null;
 
+        // Only sync future events (from now onwards)
+        const now = new Date();
+        const timeMin = now.toISOString();
+
         try {
             if (syncToken) {
                 // Incremental sync using syncToken
@@ -56,44 +67,57 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
                 newSyncToken = response.data.nextSyncToken;
                 console.log(`Incremental sync: Found ${events.length} changed events`);
             } else {
-                // Initial full sync - no syncToken available
-                console.log(`No syncToken found, performing initial full sync`);
+                // Initial full sync - only future events to avoid rate limits
+                console.log(`No syncToken found, performing initial sync (future events only)`);
                 const response = await calendar.events.list({
                     calendarId,
                     maxResults: 2500,
                     singleEvents: true,
+                    timeMin, // Only events starting from now
+                    orderBy: 'startTime',
                 });
 
                 events = response.data.items || [];
                 newSyncToken = response.data.nextSyncToken;
-                console.log(`Full sync: Found ${events.length} events`);
+                console.log(`Full sync: Found ${events.length} future events`);
             }
         } catch (error: any) {
             // Handle expired syncToken (410 Gone)
             if (error.code === 410) {
-                console.log(`SyncToken expired, performing full resync`);
+                console.log(`SyncToken expired, performing full resync (future events only)`);
                 const response = await calendar.events.list({
                     calendarId,
                     maxResults: 2500,
                     singleEvents: true,
+                    timeMin, // Only events starting from now
+                    orderBy: 'startTime',
                 });
 
                 events = response.data.items || [];
                 newSyncToken = response.data.nextSyncToken;
-                console.log(`Full resync: Found ${events.length} events`);
+                console.log(`Full resync: Found ${events.length} future events`);
             } else {
                 throw error;
             }
         }
 
-        // Process each event
+        // Process each event with rate limiting
         let syncedCount = 0;
-        for (const event of events) {
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
             if (!event.id) continue;
 
             const synced = await syncEvent(calendarId, event.id, targetCalendarId, calendar);
             if (synced) syncedCount++;
+
+            // Rate limiting: delay between events to avoid quota exhaustion
+            // Skip delay on last event
+            if (i < events.length - 1) {
+                await sleep(RATE_LIMIT_DELAY_MS);
+            }
         }
+
+        console.log(`Processed ${events.length} events with rate limiting (${RATE_LIMIT_DELAY_MS}ms delay)`);
 
         // Update watch statistics
         const updates: any = {};
