@@ -5,9 +5,16 @@ import { useRouter } from "next/navigation";
 
 interface Watch {
   calendarId: string;
+  calendarName: string;
   expiration: number;
   paused: boolean;
   targetCalendarId: string;
+  targetCalendarName: string;
+  stats: {
+    totalEventsSynced: number;
+    lastSyncTime: number | null;
+    lastSyncEventCount: number | null;
+  };
 }
 
 export default function Dashboard() {
@@ -140,8 +147,8 @@ export default function Dashboard() {
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
                           Source Calendar
                         </p>
-                        <p className="font-medium text-gray-800 dark:text-gray-200 break-all">
-                          {watch.calendarId}
+                        <p className="font-medium text-gray-800 dark:text-gray-200">
+                          {watch.calendarName}
                         </p>
                       </div>
                       <span
@@ -156,15 +163,36 @@ export default function Dashboard() {
                     </div>
                     <div className="space-y-2 text-sm">
                       <div>
-                        <span className="text-gray-500 dark:text-gray-400">Target: </span>
-                        <span className="text-gray-700 dark:text-gray-300 break-all">
-                          {watch.targetCalendarId}
+                        <span className="text-gray-500 dark:text-gray-400">Syncing to: </span>
+                        <span className="text-gray-700 dark:text-gray-300">
+                          {watch.targetCalendarName}
                         </span>
                       </div>
+                      <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">
+                              Total Synced
+                            </p>
+                            <p className="font-semibold text-gray-800 dark:text-gray-200">
+                              {watch.stats.totalEventsSynced} events
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">
+                              Last Sync
+                            </p>
+                            <p className="font-semibold text-gray-800 dark:text-gray-200">
+                              {watch.stats.lastSyncTime
+                                ? new Date(watch.stats.lastSyncTime).toLocaleString()
+                                : "Never"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                       <div>
-                        <span className="text-gray-500 dark:text-gray-400">Expires: </span>
-                        <span className="text-gray-700 dark:text-gray-300">
-                          {new Date(watch.expiration).toLocaleString()}
+                        <span className="text-gray-500 dark:text-gray-400 text-xs">
+                          Watch expires: {new Date(watch.expiration).toLocaleString()}
                         </span>
                       </div>
                     </div>

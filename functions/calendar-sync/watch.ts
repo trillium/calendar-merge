@@ -53,6 +53,11 @@ export async function createCalendarWatch(
             expiration,
             targetCalendarId,
             syncToken: initialSyncToken || null,
+            stats: {
+                totalEventsSynced: 0,
+                lastSyncTime: undefined,
+                lastSyncEventCount: undefined,
+            },
         };
 
         await firestore

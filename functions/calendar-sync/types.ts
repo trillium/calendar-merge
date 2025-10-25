@@ -9,6 +9,11 @@ export interface WatchData {
     targetCalendarId?: string;
     paused?: boolean;
     syncToken?: string;
+    stats?: {
+        totalEventsSynced: number;
+        lastSyncTime?: number;
+        lastSyncEventCount?: number;
+    };
 }
 
 export interface EventMapping {

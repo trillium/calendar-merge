@@ -87,19 +87,31 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
         }
 
         // Process each event
+        let syncedCount = 0;
         for (const event of events) {
             if (!event.id) continue;
 
-            await syncEvent(calendarId, event.id, targetCalendarId, calendar);
+            const synced = await syncEvent(calendarId, event.id, targetCalendarId, calendar);
+            if (synced) syncedCount++;
         }
 
-        // Save the new syncToken for next time
+        // Update watch statistics
+        const updates: any = {};
         if (newSyncToken) {
-            await watchDoc.ref.update({ syncToken: newSyncToken });
-            console.log(`Saved new syncToken for channel ${channelId}`);
+            updates.syncToken = newSyncToken;
         }
 
-        console.log(`Sync complete for channel ${channelId}`);
+        // Update stats
+        const currentStats = watchData.stats || { totalEventsSynced: 0 };
+        updates.stats = {
+            totalEventsSynced: currentStats.totalEventsSynced + syncedCount,
+            lastSyncTime: Date.now(),
+            lastSyncEventCount: syncedCount,
+        };
+
+        await watchDoc.ref.update(updates);
+        console.log(`Sync complete for channel ${channelId}: ${syncedCount} events processed`);
+        console.log(`Total events synced: ${updates.stats.totalEventsSynced}`);
     } catch (error) {
         console.error(`Error syncing events for channel ${channelId}:`, error);
         throw error;
@@ -114,7 +126,7 @@ async function syncEvent(
     sourceEventId: string,
     targetCalendarId: string,
     calendarClient: calendar_v3.Calendar
-): Promise<void> {
+): Promise<boolean> {
     try {
         // Use composite key as document ID to avoid need for Firestore index
         const mappingId = `${sourceCalendarId}_${sourceEventId}`;
@@ -131,7 +143,7 @@ async function syncEvent(
 
         if (!sourceEvent.data) {
             console.warn(`Source event ${sourceEventId} not found`);
-            return;
+            return false;
         }
 
         // Check if event is cancelled
@@ -142,7 +154,7 @@ async function syncEvent(
                 await deleteTargetEvent(targetCalendarId, mapping.targetEventId, calendarClient);
                 await mappingDoc.ref.delete();
             }
-            return;
+            return false;
         }
 
         // Get calendar name for labeling
@@ -206,9 +218,12 @@ async function syncEvent(
 
             console.log(`Updated event ${targetEventId} in target calendar`);
         }
+
+        return true;
     } catch (error) {
         console.error(`Error syncing event ${sourceEventId}:`, error);
         // Continue processing other events
+        return false;
     }
 }
 
