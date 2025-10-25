@@ -6,9 +6,17 @@ type ConnectButtonProps = {
   disabled?: boolean;
 };
 
-export default function ConnectButton({ onClick, disabled }: ConnectButtonProps) {
+export default function ConnectButton({
+  onClick,
+  disabled,
+}: ConnectButtonProps) {
   return (
-    <button className="btn" id="connectBtn" onClick={onClick} disabled={disabled}>
+    <button
+      className="btn flex-1"
+      id="connectBtn"
+      onClick={onClick}
+      disabled={disabled}
+    >
       Connect Google Calendar
     </button>
   );
