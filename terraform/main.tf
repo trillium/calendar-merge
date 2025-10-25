@@ -13,6 +13,10 @@ provider "google" {
   region  = var.region
 }
 
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
 variable "project_id" {
   description = "GCP Project ID"
   type        = string
@@ -95,6 +99,30 @@ resource "google_secret_manager_secret_iam_member" "oauth_access" {
   member    = "serviceAccount:${var.service_account_email}"
 }
 
+# Cloud Tasks queue for batched sync
+resource "google_cloud_tasks_queue" "calendar_sync_queue" {
+  name     = "calendar-sync-queue"
+  location = var.region
+
+  rate_limits {
+    max_dispatches_per_second = 10
+    max_concurrent_dispatches = 10
+  }
+
+  retry_config {
+    max_attempts = 3
+    max_backoff  = "3600s"
+    min_backoff  = "5s"
+  }
+}
+
+# IAM binding for Cloud Tasks to invoke Cloud Functions
+resource "google_project_iam_member" "cloudtasks_enqueuer" {
+  project = var.project_id
+  role    = "roles/cloudtasks.enqueuer"
+  member  = "serviceAccount:${var.service_account_email}"
+}
+
 # Cloud Scheduler job for watch renewal
 resource "google_cloud_scheduler_job" "renew_watches" {
   name             = "renew-calendar-watches"
@@ -106,7 +134,7 @@ resource "google_cloud_scheduler_job" "renew_watches" {
   http_target {
     http_method = "POST"
     uri         = "https://${var.region}-${var.project_id}.cloudfunctions.net/renewWatches"
-    
+
     oidc_token {
       service_account_email = var.service_account_email
     }
@@ -119,6 +147,11 @@ output "project_id" {
   value = var.project_id
 }
 
+output "project_number" {
+  value       = data.google_project.project.number
+  description = "Project number for Cloud Tasks OIDC authentication"
+}
+
 output "firestore_database" {
   value = google_firestore_database.database.name
 }
@@ -127,6 +160,15 @@ output "function_bucket" {
   value = google_storage_bucket.function_bucket.name
 }
 
+output "cloud_tasks_queue" {
+  value = google_cloud_tasks_queue.calendar_sync_queue.name
+}
+
 output "scheduler_job" {
   value = google_cloud_scheduler_job.renew_watches.name
+}
+
+output "cloudtasks_service_account" {
+  value       = "service-${data.google_project.project.number}@gcp-sa-cloudtasks.iam.gserviceaccount.com"
+  description = "Cloud Tasks service account for OIDC authentication"
 }
