@@ -54,7 +54,11 @@ export async function GET(req: NextRequest) {
     // Create session
     const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
     session.userId = userId;
-    session.tokens = tokens;
+    session.tokens = {
+      access_token: tokens.access_token ?? undefined,
+      refresh_token: tokens.refresh_token ?? undefined,
+      expiry_date: tokens.expiry_date ?? undefined,
+    };
     session.isLoggedIn = true;
     await session.save();
 
