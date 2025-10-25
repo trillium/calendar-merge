@@ -40,6 +40,11 @@ Thumbs.db
 # Logs
 *.log
 .vercel
--e 
 .env.local.bak
 client_secret.json
+
+# Claude Code local settings
+.claude/
+
+# Work in progress / temporary discussion docs
+wip/
