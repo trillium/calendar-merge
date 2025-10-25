@@ -9,8 +9,6 @@ export async function POST(req: NextRequest) {
         error: 'userId, sourceCalendarIds, targetCalendarId, and webhookUrl are required',
       }, { status: 400 });
     }
-    const { Firestore } = await import('@google-cloud/firestore');
-    const firestore = new Firestore();
 // Import helpers at the top of the file:
 // import { cleanupUserWatches } from '../../../../../functions/calendar-sync/control';
 // import { createCalendarWatch } from '../../../../../functions/calendar-sync/watch';
