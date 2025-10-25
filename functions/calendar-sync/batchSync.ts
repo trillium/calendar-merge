@@ -348,7 +348,7 @@ async function processSingleBatch(channelId: string): Promise<void> {
                     timeMin: now.toISOString(),
                     timeMax: syncState?.timeMax,
                     maxResults: 50,
-                    pageToken: null, // No token - start fresh
+                    // No pageToken - start fresh
                     singleEvents: true,
                     orderBy: 'startTime',
                 });
