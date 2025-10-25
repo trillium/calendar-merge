@@ -17,7 +17,6 @@ export function useSetupSync({
   newCalendarName: string;
   onSuccess?: (data: unknown) => void;
 }) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
   const [setupStatus, setSetupStatus] = useState<{ message: string; type: string } | null>(null);
   const [setupBtnDisabled, setSetupBtnDisabled] = useState<boolean>(true);
 
