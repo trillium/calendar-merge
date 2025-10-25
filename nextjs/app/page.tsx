@@ -11,7 +11,7 @@ import { useSetupSync } from "./hooks/useSetupSync";
 export default function Home() {
   // State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [, setUserId] = useState<string | null>(null);
   const [calendars, setCalendars] = useState<
     import("./lib/calendarUtils").Calendar[]
   >([]);
@@ -26,7 +26,7 @@ export default function Home() {
     type: string;
   } | null>(null);
   // useSetupSync hook
-  const { setupStatus, setupBtnDisabled, validateSetupBtn, setupSync } =
+  const { setupStatus, setupBtnDisabled, isLoading, validateSetupBtn, setupSync } =
     useSetupSync({
       selectedSources,
       targetOption,
@@ -43,6 +43,7 @@ export default function Home() {
   // Check session on mount and handle OAuth callback
   useEffect(() => {
     checkSessionAndLoadCalendars();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function checkSessionAndLoadCalendars() {
@@ -243,6 +244,7 @@ export default function Home() {
                 targetCalendarId={targetCalendarId}
                 newCalendarName={newCalendarName}
                 setupBtnDisabled={setupBtnDisabled}
+                isLoading={isLoading}
                 setupStatus={setupStatus}
                 onTargetOptionChange={handleTargetOptionChange}
                 onTargetSelection={handleTargetSelection}

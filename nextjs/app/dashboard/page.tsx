@@ -27,6 +27,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     checkAuthAndLoadStatus();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function checkAuthAndLoadStatus() {
@@ -42,7 +43,7 @@ export default function Dashboard() {
         const data = await statusRes.json();
         setWatches(data.watches || []);
       }
-    } catch (err) {
+    } catch {
       setError("Failed to load sync status");
     } finally {
       setLoading(false);
@@ -58,7 +59,7 @@ export default function Dashboard() {
       } else {
         setMessage({ text: "Failed to stop sync", type: "error" });
       }
-    } catch (err) {
+    } catch {
       setMessage({ text: "Error stopping sync", type: "error" });
     } finally {
       setShowStopConfirm(false);
@@ -74,7 +75,7 @@ export default function Dashboard() {
       } else {
         setMessage({ text: "Failed to pause sync", type: "error" });
       }
-    } catch (err) {
+    } catch {
       setMessage({ text: "Error pausing sync", type: "error" });
     }
   }
@@ -88,7 +89,7 @@ export default function Dashboard() {
       } else {
         setMessage({ text: "Failed to resume sync", type: "error" });
       }
-    } catch (err) {
+    } catch {
       setMessage({ text: "Error resuming sync", type: "error" });
     }
   }
@@ -140,7 +141,7 @@ export default function Dashboard() {
               Stop Syncing?
             </h3>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              This will remove all calendar watches and stop syncing events. You'll need to set up sync again if you want to resume.
+              This will remove all calendar watches and stop syncing events. You&apos;ll need to set up sync again if you want to resume.
             </p>
             <div className="flex gap-3">
               <button
