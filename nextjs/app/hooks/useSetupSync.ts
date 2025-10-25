@@ -17,6 +17,7 @@ export function useSetupSync({
 }) {
   const [setupStatus, setSetupStatus] = useState<{ message: string; type: string } | null>(null);
   const [setupBtnDisabled, setSetupBtnDisabled] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Validate setup button
   function validateSetupBtn() {
@@ -28,6 +29,7 @@ export function useSetupSync({
   }
 
   async function setupSync() {
+    setIsLoading(true);
     setSetupBtnDisabled(true);
     setSetupStatus({ message: "Setting up calendar sync...", type: "success" });
     try {
@@ -63,12 +65,14 @@ export function useSetupSync({
         type: "error",
       });
       setSetupBtnDisabled(false);
+      setIsLoading(false);
     }
   }
 
   return {
     setupStatus,
     setupBtnDisabled,
+    isLoading,
     setSetupBtnDisabled,
     validateSetupBtn,
     setupSync,
