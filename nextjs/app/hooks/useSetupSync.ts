@@ -54,6 +54,7 @@ export function useSetupSync({
         message: `✓ Sync configured! Watching ${data.watchesCreated} calendars.`,
         type: "success",
       });
+      setIsLoading(false);
       if (onSuccess) onSuccess(data);
     } catch (error: unknown) {
       let message = "Setup failed";
