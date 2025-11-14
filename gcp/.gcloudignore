@@ -1,0 +1,43 @@
+# Node modules
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Source files (only deploy dist/)
+src/
+*.ts
+!src/  # But keep src/ if needed for source maps
+
+# TypeScript config
+tsconfig.json
+
+# Tests
+**/*.test.ts
+**/*.test.js
+**/__tests__/
+coverage/
+
+# Development
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Scripts
+scripts/
+
+# Logs
+*.log
