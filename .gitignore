@@ -42,3 +42,9 @@ Thumbs.db
 .vercel
 .env.local.bak
 client_secret.json
+
+# Gas Town (added by gt)
+.runtime/
+.claude/
+.beads/
+.logs/
