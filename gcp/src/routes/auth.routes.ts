@@ -17,9 +17,21 @@ router.get('/auth/google', asyncHandler(authController.initiateAuth));
 
 /**
  * GET /auth/google/callback
- * Handle Google OAuth callback
+ * Handle Google OAuth callback (direct)
  */
 router.get('/auth/google/callback', asyncHandler(authController.handleCallback));
+
+/**
+ * GET /auth/google/local-callback
+ * Handle OAuth callback bounced from Vercel
+ */
+router.get('/auth/google/local-callback', asyncHandler(authController.handleCallback));
+
+/**
+ * POST /auth/store-tokens
+ * Store OAuth tokens from the Next.js frontend callback
+ */
+router.post('/auth/store-tokens', asyncHandler(authController.storeTokens));
 
 /**
  * POST /auth/revoke

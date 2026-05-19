@@ -67,12 +67,23 @@ app.use(errorHandler);
 // Cloud Function export
 export const calendarSync: Express = app;
 
-// Local development server
+// Local development server with background jobs
 if (process.env.NODE_ENV === 'development' || require.main === module) {
   const PORT = APP_CONFIG.PORT;
   app.listen(PORT, () => {
     logger.info(`Server listening on port ${PORT}`);
     logger.info(`Environment: ${APP_CONFIG.NODE_ENV}`);
     logger.info(`Cloud Function URL: ${APP_CONFIG.CLOUD_FUNCTION_URL || 'not set'}`);
+
+    // Start background jobs (local replacements for Cloud Scheduler)
+    const { startChannelRenewalJob } = require('./jobs/channel-renewal.job');
+    const { startPeriodicSyncJob } = require('./jobs/periodic-sync.job');
+    const { startCleanupJob } = require('./jobs/cleanup.job');
+
+    startChannelRenewalJob();
+    startPeriodicSyncJob();
+    startCleanupJob();
+
+    logger.info('All background jobs started');
   });
 }

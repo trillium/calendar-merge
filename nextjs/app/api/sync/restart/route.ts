@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:13013';
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -9,34 +11,18 @@ export async function POST(req: NextRequest) {
         error: 'userId, sourceCalendarIds, targetCalendarId, and webhookUrl are required',
       }, { status: 400 });
     }
-// Import helpers at the top of the file:
-// import { cleanupUserWatches } from '../../../../../functions/calendar-sync/control';
-// import { createCalendarWatch } from '../../../../../functions/calendar-sync/watch';
 
-const { cleanupUserWatches } = await import('../../../../../functions/calendar-sync/control');
-const { createCalendarWatch } = await import('../../../../../functions/calendar-sync/watch');
+    // Proxy to GCP backend
+    const res = await fetch(`${BACKEND_URL}/sync/restart`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, sourceCalendarIds, targetCalendarId, webhookUrl }),
+    });
 
-// Stop existing watches
-const stoppedCount = await cleanupUserWatches(userId);
-
-// Create new watches for each source calendar
-let createdCount = 0;
-for (const calendarId of sourceCalendarIds) {
-  try {
-    await createCalendarWatch(userId, calendarId, webhookUrl, targetCalendarId);
-    createdCount++;
-  } catch (error) {
-    console.error(`Failed to create watch for ${calendarId}:`, error);
-  }
-}
-return NextResponse.json({
-  success: true,
-  message: `Restarted sync: stopped ${stoppedCount} watch(es), created ${createdCount} new watch(es)`
-});
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (error) {
     console.error('Error restarting sync:', error);
     return NextResponse.json({ error: 'Failed to restart sync' }, { status: 500 });
   }
 }
-
-
