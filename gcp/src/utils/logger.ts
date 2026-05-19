@@ -3,6 +3,7 @@
  * Provides structured logging for Cloud Functions
  */
 
+import chalk from 'chalk';
 import { APP_CONFIG } from '../config';
 
 export enum LogLevel {
@@ -32,8 +33,62 @@ class Logger {
 
   private formatMessage(level: string, message: string, meta?: any): string {
     const timestamp = new Date().toISOString();
-    const metaStr = meta ? ` ${JSON.stringify(meta)}` : '';
-    return `[${timestamp}] [${level}] ${message}${metaStr}`;
+
+    // Safely stringify metadata, handling circular references and formatting
+    let metaStr = '';
+    if (meta) {
+      try {
+        metaStr = ` ${JSON.stringify(meta, this.getCircularReplacer(), 2)}`;
+      } catch (error) {
+        metaStr = ` [Unable to stringify metadata: ${error}]`;
+      }
+    }
+
+    // Color codes for different log levels
+    const timestampStr = chalk.gray(`[${timestamp}]`);
+    let levelStr: string;
+    let messageStr: string;
+
+    switch (level) {
+      case 'DEBUG':
+        levelStr = chalk.cyan(`[${level}]`);
+        messageStr = chalk.cyan(message);
+        break;
+      case 'INFO':
+        levelStr = chalk.blue(`[${level}]`);
+        messageStr = chalk.white(message);
+        break;
+      case 'WARN':
+        levelStr = chalk.yellow(`[${level}]`);
+        messageStr = chalk.yellow(message);
+        break;
+      case 'ERROR':
+        levelStr = chalk.red(`[${level}]`);
+        messageStr = chalk.red(message);
+        break;
+      default:
+        levelStr = `[${level}]`;
+        messageStr = message;
+    }
+
+    const metaColorStr = meta ? chalk.gray(metaStr) : '';
+    return `${timestampStr} ${levelStr} ${messageStr}${metaColorStr}`;
+  }
+
+  /**
+   * Helper to handle circular references in JSON.stringify
+   */
+  private getCircularReplacer() {
+    const seen = new WeakSet();
+    return (_key: string, value: any) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return '[Circular]';
+        }
+        seen.add(value);
+      }
+      return value;
+    };
   }
 
   debug(message: string, meta?: any): void {

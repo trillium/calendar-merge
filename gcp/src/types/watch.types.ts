@@ -2,7 +2,7 @@
  * Watch channel type definitions
  */
 
-import { Timestamp } from '@google-cloud/firestore';
+import { Timestamp } from '../db';
 
 /**
  * Watch channel data stored in Firestore
@@ -22,6 +22,11 @@ export interface WatchData {
   syncTokenUpdatedAt?: number;
   syncState?: SyncState;
   stats?: WatchStats;
+
+  // Scheduler-driven incremental sync
+  pendingChanges?: boolean; // Flag: calendar has changes to sync
+  lastChangeNotification?: number; // When webhook last notified us
+  lastSyncedAt?: number; // When scheduler last processed changes
 }
 
 /**

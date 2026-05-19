@@ -2,7 +2,7 @@
  * Calendar-related type definitions
  */
 
-import { Timestamp } from '@google-cloud/firestore';
+import { Timestamp } from '../db';
 import { calendar_v3 } from 'googleapis';
 
 /**
