@@ -13,13 +13,20 @@ import { PortableTimestamp } from './timestamp';
 
 let sqliteDb: Database | null = null;
 
-const COLLECTIONS = ['users', 'watches', 'eventMappings', 'syncState', 'oauthState', 'batchStates'];
+const COLLECTIONS = ['users', 'watches', 'eventMappings', 'syncState', 'oauthState', 'batchStates', 'tasks'];
 
 /**
  * Get or create the SQLite database instance
  */
 function getDb(): Database {
   if (!sqliteDb) {
+    if (process.env.VITEST || process.env.NODE_ENV === 'test') {
+      throw new Error(
+        'Real SQLite db initialized during test! Tests must mock ../db or set SQLITE_DB_PATH to :memory:. ' +
+        'This guard prevents tests from accidentally writing to the live database.'
+      );
+    }
+
     const dbPath = process.env.SQLITE_DB_PATH || path.join(process.cwd(), 'data', 'calendar-sync.db');
 
     // Ensure data directory exists
