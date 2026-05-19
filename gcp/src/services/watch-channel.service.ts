@@ -3,7 +3,7 @@
  * Manages Google Calendar push notification channels
  */
 
-import { Timestamp } from '@google-cloud/firestore';
+import { Timestamp } from '../db';
 import { db } from '../db';
 import { watchCalendar, stopWatch } from './google-calendar.service';
 import { WatchData } from '../types';

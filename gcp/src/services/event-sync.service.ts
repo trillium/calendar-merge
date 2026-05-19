@@ -4,11 +4,11 @@
  */
 
 import { calendar_v3 } from 'googleapis';
-import { Timestamp } from '@google-cloud/firestore';
+import { Timestamp } from '../db';
 import { db } from '../db';
 import { listEvents, getEvent, createEvent, updateEvent, deleteEvent } from './google-calendar.service';
 import { EventMapping, WatchData, SyncEventResult } from '../types';
-import { logger, sleep, generateCompositeKey } from '../utils';
+import { logger, sleep, generateCompositeKey, transformEventData } from '../utils';
 import { APP_CONFIG } from '../config';
 
 const log = logger;
@@ -144,44 +144,6 @@ export async function syncCalendarEvents(channelId: string): Promise<void> {
     log.error(`Error syncing events for channel ${channelId}`, error);
     throw error;
   }
-}
-
-/**
- * Transform event data for target calendar
- * Includes special handling for specific event types (e.g., Airbnb)
- */
-function transformEventData(
-  sourceEvent: calendar_v3.Schema$Event,
-  sourceCalendarId: string
-): calendar_v3.Schema$Event {
-  const calendarName = sourceCalendarId.split('@')[0];
-  const transparency = sourceEvent.transparency || 'opaque';
-  const busyStatus = transparency === 'transparent' ? 'free' : 'busy';
-
-  // Check if this is an Airbnb event and modify description
-  let description = sourceEvent.description || '';
-  const isAirbnbEvent =
-    sourceEvent.summary?.toLowerCase().includes('airbnb') ||
-    sourceEvent.organizer?.email?.toLowerCase().includes('airbnb') ||
-    sourceEvent.creator?.email?.toLowerCase().includes('airbnb') ||
-    sourceEvent.attendees?.some(attendee =>
-      attendee.email?.toLowerCase().includes('airbnb')
-    );
-
-  if (isAirbnbEvent) {
-    description = description ? `__EVENT__\n\n${description}` : '__EVENT__';
-  }
-
-  return {
-    summary: `[${calendarName}] ${sourceEvent.summary || '(No title)'} - ${busyStatus}`,
-    description,
-    start: sourceEvent.start,
-    end: sourceEvent.end,
-    location: sourceEvent.location,
-    status: sourceEvent.status,
-    transparency,
-    visibility: 'private',
-  };
 }
 
 /**
