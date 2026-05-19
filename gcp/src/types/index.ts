@@ -29,4 +29,15 @@ export type {
   RoundRobinStatus,
   EventTransformOptions,
   EventHandlingConfig,
+  BatchOperationResult,
+  BatchSyncResult,
 } from './sync.types';
+
+// Batch types
+export type {
+  BatchState,
+  BatchTaskPayload,
+  RetryTaskPayload,
+  BatchProgress,
+  CloudTasksConfig,
+} from './batch.types';
