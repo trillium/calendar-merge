@@ -25,7 +25,7 @@ echo "📋 Using PROJECT_NUMBER: $PROJECT_NUMBER"
 
 gcloud functions deploy batchSync \
   --gen2 \
-  --runtime=nodejs20 \
+  --runtime=nodejs22 \
   --region=$REGION \
   --source=./functions/calendar-sync \
   --entry-point=batchSync \

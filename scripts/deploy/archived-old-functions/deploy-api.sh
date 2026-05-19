@@ -12,7 +12,7 @@ echo "☁️  Deploying API gateway function..."
 
 gcloud functions deploy api \
   --gen2 \
-  --runtime=nodejs20 \
+  --runtime=nodejs22 \
   --region=$REGION \
   --source=./functions/calendar-sync \
   --entry-point=api \
