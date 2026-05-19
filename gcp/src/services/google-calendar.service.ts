@@ -8,8 +8,23 @@ import { getAuthClient } from './google-auth.service';
 import { CalendarEvent } from '../types';
 import { logger, sleep } from '../utils';
 import { APP_CONFIG } from '../config';
+import { recordApiCall } from './api-health.service';
 
 const log = logger;
+
+/**
+ * Wrap a Google API call with health tracking
+ */
+async function tracked<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    const result = await operation();
+    recordApiCall(true);
+    return result;
+  } catch (error: any) {
+    recordApiCall(false, error?.code);
+    throw error;
+  }
+}
 
 /**
  * Get Google Calendar API client for a user
@@ -28,7 +43,7 @@ export async function listCalendars(userId: string): Promise<calendar_v3.Schema$
   const calendar = await getCalendarClient(userId);
 
   try {
-    const response = await calendar.calendarList.list();
+    const response = await tracked(() => calendar.calendarList.list());
     return response.data.items || [];
   } catch (error) {
     log.error('Failed to list calendars', error, { userId });
@@ -46,7 +61,7 @@ export async function getCalendar(
   const calendar = await getCalendarClient(userId);
 
   try {
-    const response = await calendar.calendars.get({ calendarId });
+    const response = await tracked(() => calendar.calendars.get({ calendarId }));
     return response.data;
   } catch (error: any) {
     if (error.code === 404) {
@@ -70,19 +85,21 @@ export async function listEvents(
     singleEvents?: boolean;
     orderBy?: string;
     syncToken?: string;
+    pageToken?: string;
   }
-): Promise<{ events: CalendarEvent[]; nextSyncToken?: string }> {
+): Promise<{ events: CalendarEvent[]; nextSyncToken?: string; nextPageToken?: string }> {
   const calendar = await getCalendarClient(userId);
 
   try {
-    const response = await calendar.events.list({
+    const response = await tracked(() => calendar.events.list({
       calendarId,
       ...options,
-    });
+    }));
 
     return {
       events: response.data.items || [],
       nextSyncToken: response.data.nextSyncToken || undefined,
+      nextPageToken: response.data.nextPageToken || undefined,
     };
   } catch (error: any) {
     // Handle expired syncToken (410 Gone)
@@ -106,7 +123,7 @@ export async function getEvent(
   const calendar = await getCalendarClient(userId);
 
   try {
-    const response = await calendar.events.get({ calendarId, eventId });
+    const response = await tracked(() => calendar.events.get({ calendarId, eventId }));
     return response.data;
   } catch (error: any) {
     if (error.code === 404) {
@@ -128,10 +145,10 @@ export async function createEvent(
   const calendar = await getCalendarClient(userId);
 
   try {
-    const response = await calendar.events.insert({
+    const response = await tracked(() => calendar.events.insert({
       calendarId,
       requestBody: event,
-    });
+    }));
     log.info('Event created', { userId, calendarId, eventId: response.data.id });
     return response.data;
   } catch (error) {
@@ -152,11 +169,11 @@ export async function updateEvent(
   const calendar = await getCalendarClient(userId);
 
   try {
-    const response = await calendar.events.update({
+    const response = await tracked(() => calendar.events.update({
       calendarId,
       eventId,
       requestBody: event,
-    });
+    }));
     log.info('Event updated', { userId, calendarId, eventId });
     return response.data;
   } catch (error) {
@@ -176,7 +193,7 @@ export async function deleteEvent(
   const calendar = await getCalendarClient(userId);
 
   try {
-    await calendar.events.delete({ calendarId, eventId });
+    await tracked(() => calendar.events.delete({ calendarId, eventId }));
     log.info('Event deleted', { userId, calendarId, eventId });
   } catch (error: any) {
     if (error.code === 404) {
@@ -201,7 +218,7 @@ export async function watchCalendar(
   const calendar = await getCalendarClient(userId);
 
   try {
-    const response = await calendar.events.watch({
+    const response = await tracked(() => calendar.events.watch({
       calendarId,
       requestBody: {
         id: channelId,
@@ -209,7 +226,7 @@ export async function watchCalendar(
         address: webhookUrl,
         expiration: expiration.toString(),
       },
-    });
+    }));
 
     log.info('Calendar watch created', {
       userId,
@@ -239,12 +256,12 @@ export async function stopWatch(
   const calendar = await getCalendarClient(userId);
 
   try {
-    await calendar.channels.stop({
+    await tracked(() => calendar.channels.stop({
       requestBody: {
         id: channelId,
         resourceId,
       },
-    });
+    }));
     log.info('Calendar watch stopped', { userId, channelId, resourceId });
   } catch (error: any) {
     // 404 means watch already expired or doesn't exist
