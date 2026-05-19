@@ -1,25 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getIronSession } from 'iron-session';
-import { sessionOptions, SessionData } from '@/app/lib/session';
-import { cookies } from 'next/headers';
 import { gcpBackend } from '@/app/lib/gcp-backend';
 
 export async function POST(req: NextRequest) {
-  const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
-
-  if (!session.isLoggedIn || !session.userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
     const body = await req.json();
-    const { sourceCalendars, targetCalendar } = body;
+    const { userId, sourceCalendars, targetCalendar } = body;
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized — no userId' }, { status: 401 });
+    }
 
     if (!sourceCalendars || !targetCalendar) {
       return NextResponse.json({ error: 'Missing sourceCalendars or targetCalendar' }, { status: 400 });
     }
-
-    const userId = session.userId;
 
     // Create watch subscriptions via GCP backend
     const results = [];
