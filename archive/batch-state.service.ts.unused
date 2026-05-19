@@ -1,0 +1,112 @@
+/**
+ * Batch State Service
+ * Manages batch sync state in Firestore
+ * Tracks progress, handles state transitions, provides status queries
+ */
+
+import { BatchState, BatchProgress } from '../types/batch.types';
+
+/**
+ * Initialize batch state for a new sync
+ * Creates initial state document in Firestore
+ * @param userId - User ID
+ * @param totalEvents - Total number of events to sync
+ * @param batchSize - Events per batch
+ * @returns Initial batch state
+ */
+export async function initializeBatchState(
+  userId: string,
+  totalEvents: number,
+  batchSize: number
+): Promise<BatchState> {
+  // TODO: Implementation
+}
+
+/**
+ * Get batch state for a user
+ * @param userId - User ID
+ * @param batchNumber - Specific batch number (optional)
+ * @returns Batch state or null if not found
+ */
+export async function getBatchState(
+  userId: string,
+  batchNumber?: number
+): Promise<BatchState | null> {
+  // TODO: Implementation
+}
+
+/**
+ * Update batch state
+ * Records progress, status changes, errors
+ * @param userId - User ID
+ * @param batchNumber - Batch number
+ * @param updates - Partial batch state to update
+ */
+export async function updateBatchState(
+  userId: string,
+  batchNumber: number,
+  updates: Partial<BatchState>
+): Promise<void> {
+  // TODO: Implementation
+}
+
+/**
+ * Mark batch as completed
+ * Final state transition
+ * @param userId - User ID
+ * @param batchNumber - Batch number
+ */
+export async function completeBatchState(
+  userId: string,
+  batchNumber: number
+): Promise<void> {
+  // TODO: Implementation
+}
+
+/**
+ * Mark batch as failed
+ * Records error and stops further processing
+ * @param userId - User ID
+ * @param batchNumber - Batch number
+ * @param error - Error message
+ */
+export async function failBatchState(
+  userId: string,
+  batchNumber: number,
+  error: string
+): Promise<void> {
+  // TODO: Implementation
+}
+
+/**
+ * Get overall batch progress
+ * Aggregates all batch states for a user
+ * @param userId - User ID
+ * @returns Progress information
+ */
+export async function getBatchProgress(userId: string): Promise<BatchProgress | null> {
+  // TODO: Implementation
+}
+
+/**
+ * Clean up completed batch states
+ * Remove old state documents (retention policy)
+ * @param userId - User ID
+ * @param olderThanDays - Delete states older than N days
+ */
+export async function cleanupBatchStates(
+  userId: string,
+  olderThanDays: number
+): Promise<number> {
+  // TODO: Implementation
+}
+
+/**
+ * Cancel all pending batches for a user
+ * Marks all pending/processing batches as cancelled
+ * @param userId - User ID
+ * @returns Number of batches cancelled
+ */
+export async function cancelAllBatches(userId: string): Promise<number> {
+  // TODO: Implementation
+}

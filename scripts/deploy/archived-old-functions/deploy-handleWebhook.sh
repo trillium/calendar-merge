@@ -12,13 +12,13 @@ echo "☁️  Deploying handleWebhook function..."
 
 gcloud functions deploy handleWebhook \
   --gen2 \
-  --runtime=nodejs20 \
+  --runtime=nodejs22 \
   --region=$REGION \
   --source=./functions/calendar-sync \
   --entry-point=handleWebhook \
   --trigger-http \
   --allow-unauthenticated \
   --service-account=$SERVICE_ACCOUNT_EMAIL \
-  --set-env-vars PROJECT_ID=$PROJECT_ID
+  --set-env-vars PROJECT_ID=$PROJECT_ID,GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
 
 echo "✅ handleWebhook deployed successfully"
