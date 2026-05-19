@@ -15,6 +15,7 @@ package-lock.json
 
 # SQLite database
 gcp/data/
+gcp/calendar-sync.db
 
 # Build output
 dist/
@@ -42,6 +43,7 @@ Thumbs.db
 
 # Logs
 *.log
+debug.jsonl
 .vercel
 .env.local.bak
 client_secret.json
