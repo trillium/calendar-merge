@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { gcpBackend } from '@/app/lib/gcp-backend';
+import { backend } from '@/app/lib/backend';
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,13 +14,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing sourceCalendars or targetCalendar' }, { status: 400 });
     }
 
-    // Create watch subscriptions via GCP backend
+    // Create watch subscriptions via backend
     const results = [];
     const errors = [];
 
     for (const calendarId of sourceCalendars) {
       try {
-        const result = await gcpBackend.createWatch({
+        const result = await backend.createWatch({
           userId,
           calendarId,
           targetCalendarId: targetCalendar,
@@ -45,10 +45,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Trigger initial sync for all calendars
-    // Round-robin will automatically chain through all calendars via self-triggering
     try {
       console.log(`Triggering initial sync for user ${userId}`);
-      await gcpBackend.triggerSync({ userId });
+      await backend.triggerSync({ userId });
       console.log(`Initial sync triggered successfully`);
     } catch (syncError) {
       console.error('Failed to trigger initial sync:', syncError);
