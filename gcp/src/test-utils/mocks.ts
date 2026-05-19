@@ -3,7 +3,7 @@
  * Based on functions/calendar-sync test mocks
  */
 
-import { Timestamp } from '@google-cloud/firestore';
+import { Timestamp } from '../db';
 
 export const mockUserData = {
   userId: 'test-user-123',
