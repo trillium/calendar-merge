@@ -5,7 +5,6 @@
 
 import { Request, Response } from 'express';
 import {
-  batchSyncEvents,
   batchSyncRoundRobin,
   getUserWatchChannels,
   pauseWatchChannel,
@@ -15,6 +14,7 @@ import {
 } from '../services';
 import { logger } from '../utils';
 import { db } from '../db';
+import { WatchData } from '../types';
 
 const log = logger;
 
@@ -33,7 +33,11 @@ export async function triggerBatchSync(req: Request, res: Response): Promise<voi
       // If more calendars exist, trigger next batch via self-triggering HTTP call
       if (result.hasMore) {
         const { APP_CONFIG } = await import('../config');
-        const triggerUrl = `${APP_CONFIG.CLOUD_FUNCTION_URL}/sync/trigger`;
+        // Use localhost for local dev, CLOUD_FUNCTION_URL for production
+        const baseUrl = APP_CONFIG.NODE_ENV === 'development'
+          ? `http://localhost:${APP_CONFIG.PORT}`
+          : APP_CONFIG.CLOUD_FUNCTION_URL;
+        const triggerUrl = `${baseUrl}/sync/trigger`;
 
         log.info('Triggering next batch', { userId, nextIndex: result.currentIndex });
 
@@ -49,9 +53,15 @@ export async function triggerBatchSync(req: Request, res: Response): Promise<voi
 
       res.status(200).json({ success: true, ...result });
     } else if (channelId) {
-      log.info('Legacy batch sync triggered', { channelId });
-      await batchSyncEvents(channelId);
-      res.status(200).json({ success: true, channelId });
+      // Legacy API: channelId -> get userId and use round-robin
+      log.info('Legacy batch sync triggered (converting to round-robin)', { channelId });
+      const watchData = await db.getDoc<WatchData>('watches', channelId);
+      if (!watchData) {
+        res.status(404).json({ error: 'Watch channel not found' });
+        return;
+      }
+      const result = await batchSyncRoundRobin(watchData.userId);
+      res.status(200).json({ success: true, channelId, ...result });
     } else {
       res.status(400).json({ error: 'userId or channelId is required' });
     }
@@ -77,10 +87,16 @@ export async function getSyncStatus(req: Request, res: Response): Promise<void> 
 
     const status = watches.map(watch => ({
       calendarId: watch.calendarId,
+      calendarName: watch.calendarName || watch.calendarId,
       channelId: watch.channelId,
-      paused: watch.paused,
+      targetCalendarId: watch.targetCalendarId,
+      targetCalendarName: watch.targetCalendarName || watch.targetCalendarId,
+      expiration: watch.expiration,
+      paused: watch.paused ?? false,
+      syncToken: watch.syncToken,
+      syncTokenUpdatedAt: watch.syncTokenUpdatedAt,
       syncState: watch.syncState,
-      stats: watch.stats,
+      stats: watch.stats || { totalEventsSynced: 0 },
     }));
 
     res.status(200).json({ watches: status });
@@ -162,9 +178,15 @@ export async function restartSync(req: Request, res: Response): Promise<void> {
   }
 
   try {
+    // Reset state and get userId for round-robin
     await resetBatchSyncState(channelId);
-    await batchSyncEvents(channelId);
-    res.status(200).json({ success: true, message: 'Sync restarted' });
+    const watchData = await db.getDoc<WatchData>('watches', channelId);
+    if (!watchData) {
+      res.status(404).json({ error: 'Watch channel not found' });
+      return;
+    }
+    const result = await batchSyncRoundRobin(watchData.userId);
+    res.status(200).json({ success: true, message: 'Sync restarted', ...result });
   } catch (error) {
     log.error('Error restarting sync', error, { channelId });
     res.status(500).json({ error: 'Error restarting sync' });
