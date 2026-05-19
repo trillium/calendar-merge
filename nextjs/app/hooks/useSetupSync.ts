@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { setupCalendarSync } from "../lib/api";
-import { createCalendar } from "../lib/calendarUtils";
+import { backend } from "../lib/backend";
 
 export function useSetupSync({
   selectedSources,
@@ -32,6 +31,7 @@ export function useSetupSync({
     setIsLoading(true);
     setSetupBtnDisabled(true);
     setSetupStatus({ message: "Setting up calendar sync...", type: "success" });
+    fetch(`/api/debug?msg=setup-sync-start&sources=${selectedSources.length}&targetOption=${targetOption}&targetId=${encodeURIComponent(targetCalendarId)}&newName=${encodeURIComponent(newCalendarName)}`);
     try {
       let finalTargetCalendarId = targetCalendarId;
       if (targetOption === "new") {
@@ -39,19 +39,22 @@ export function useSetupSync({
           message: "Creating new calendar...",
           type: "success",
         });
-        const newCalendar = await createCalendar(newCalendarName.trim());
+        const userId = localStorage.getItem("calendar_merge_userId");
+        if (!userId) throw new Error("Not authenticated");
+        const newCalendar = await backend.createCalendar(userId, newCalendarName.trim());
         finalTargetCalendarId = newCalendar.id;
         setSetupStatus({
           message: `Created calendar "${newCalendar.summary}". Setting up sync...`,
           type: "success",
         });
       }
-      const data = await setupCalendarSync({
+      const data = await backend.setupCalendarSync({
         selectedSources,
         targetCalendarId: finalTargetCalendarId,
       });
+      fetch(`/api/debug?msg=setup-sync-success&watchesCreated=${data.watchesCreated}`);
       setSetupStatus({
-        message: `✓ Sync configured! Watching ${data.watchesCreated} calendars.`,
+        message: `\u2713 Sync configured! Watching ${data.watchesCreated} calendars.`,
         type: "success",
       });
       setIsLoading(false);
@@ -61,6 +64,7 @@ export function useSetupSync({
       if (error instanceof Error) {
         message += ": " + error.message;
       }
+      fetch(`/api/debug?msg=setup-sync-error&error=${encodeURIComponent(message)}`);
       setSetupStatus({
         message,
         type: "error",
