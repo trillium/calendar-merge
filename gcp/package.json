@@ -10,12 +10,15 @@
     "build": "tsc",
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
-    "test": "vitest run",
+    "test": "vitest run && bun test src/db/sqlite.test.ts src/services/task-queue-cascade.test.ts",
+    "test:vitest": "vitest run",
+    "test:bun": "bun test src/db/sqlite.test.ts src/services/task-queue-cascade.test.ts",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "status": "bun src/cli/status.ts"
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.10.0",
