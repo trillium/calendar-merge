@@ -10,11 +10,12 @@ import { useSetupSync } from "../hooks/useSetupSync";
 
 interface SetupWizardProps {
   initialAuthStatus?: { message: string; type: string } | null;
+  initialUserId?: string | null;
 }
 
-export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
+export default function SetupWizard({ initialAuthStatus, initialUserId }: SetupWizardProps) {
   // State
-  const [, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(initialUserId || null);
   const [calendars, setCalendars] = useState<
     import("../lib/calendarUtils").Calendar[]
   >([]);
@@ -44,26 +45,20 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
       },
     });
 
-  // Check session on mount
+  // When userId becomes available (from props or localStorage), advance to step 2
   useEffect(() => {
-    checkSession();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function checkSession() {
-    // Check session status
-    try {
-      const res = await fetch("/api/session");
-      if (res.ok) {
-        const data = await res.json();
-        setUserId(data.userId);
-        setStep(2);
-        await loadCalendars();
-      }
-    } catch (err) {
-      console.error("Session check failed:", err);
+    if (initialUserId && !userId) {
+      setUserId(initialUserId);
     }
-  }
+  }, [initialUserId, userId]);
+
+  useEffect(() => {
+    if (userId && step === 1) {
+      setStep(2);
+      loadCalendars(userId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   // Validate setup button
   useEffect(() => {
@@ -119,10 +114,12 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
     }
   }
 
-  async function loadCalendars() {
+  async function loadCalendars(uid?: string) {
+    const activeUserId = uid || userId;
+    if (!activeUserId) return;
     setLoadingCalendars(true);
     try {
-      const items = await fetchCalendars();
+      const items = await fetchCalendars(activeUserId);
       setCalendars(items);
       setLoadingCalendars(false);
     } catch (error: unknown) {

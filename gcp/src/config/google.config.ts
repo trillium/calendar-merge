@@ -12,6 +12,8 @@ export const GOOGLE_CONFIG = {
     SCOPES: [
       'https://www.googleapis.com/auth/calendar',
       'https://www.googleapis.com/auth/calendar.events',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile',
     ],
   },
 
