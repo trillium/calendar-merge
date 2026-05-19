@@ -6,7 +6,7 @@
     "node": "22"
   },
   "scripts": {
-    "dev": "next dev --turbopack -p 13013",
+    "dev": "next dev --turbopack -p 13014",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"
@@ -16,19 +16,25 @@
     "@google-cloud/tasks": "^5.5.2",
     "googleapis": "^128.0.0",
     "iron-session": "^8.0.4",
-    "next": "15.5.4",
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "next": "^16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "19.2.5",
+    "@types/react-dom": "19.2.3",
     "eslint": "^9",
-    "eslint-config-next": "15.5.4",
+    "eslint-config-next": "16.0.3",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.2.5",
+      "@types/react-dom": "19.2.3"
+    }
   }
 }

@@ -106,8 +106,17 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
     }
   }, [calendars, selectedSources.length]);
 
-  function startOAuth() {
-    window.location.href = "/api/oauth/start";
+  async function startOAuth() {
+    try {
+      const res = await fetch("http://localhost:13013/auth/google");
+      const data = await res.json();
+      if (data.authUrl) {
+        window.location.href = data.authUrl;
+      }
+    } catch (err) {
+      console.error("Failed to start OAuth:", err);
+      setAuthStatus({ message: "Failed to connect to backend", type: "error" });
+    }
   }
 
   async function loadCalendars() {
