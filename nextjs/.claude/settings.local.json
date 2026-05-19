@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "mcp__vercel__get_project",
+      "mcp__vercel__list_deployments",
+      "mcp__vercel__list_projects",
+      "mcp__vercel__get_deployment_build_logs",
+      "mcp__playwright__playwright_navigate",
+      "Read(//Users/trilliumsmith/code/calendar-merge-service/**)",
+      "mcp__vercel__web_fetch_vercel_url",
+      "Bash(gcloud functions logs read:*)"
     ],
     "deny": [],
     "ask": []
