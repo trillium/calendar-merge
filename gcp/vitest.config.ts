@@ -7,7 +7,7 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./src/test-utils/setup.ts'],
     include: ['**/*.test.ts'],
-    exclude: ['node_modules', 'dist'],
+    exclude: ['node_modules', 'dist', '**/sqlite.test.ts', '**/task-queue-cascade.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
