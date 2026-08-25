@@ -4,7 +4,7 @@
  */
 
 import { google, Auth } from 'googleapis';
-import { Timestamp } from '@google-cloud/firestore';
+import { Timestamp } from '../db';
 import { GOOGLE_CONFIG } from '../config';
 import { db } from '../db';
 import { UserData, OAuthState } from '../types';
@@ -86,16 +86,24 @@ export async function handleOAuthCallback(
 
   oauth2Client.setCredentials(tokens);
 
-  // Get user info
-  const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
-  const { data: userInfo } = await oauth2.userinfo.get();
+  // Get user info from id_token (no extra scopes needed)
+  let userId: string;
+  let email: string;
 
-  if (!userInfo.email || !userInfo.id) {
-    throw new Error('Failed to get user info from Google');
+  if (tokens.id_token) {
+    const ticket = await oauth2Client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: GOOGLE_CONFIG.OAUTH.CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload?.sub || !payload?.email) {
+      throw new Error('Failed to get user info from id_token');
+    }
+    userId = payload.sub;
+    email = payload.email;
+  } else {
+    throw new Error('No id_token returned from Google');
   }
-
-  const userId = userInfo.id;
-  const email = userInfo.email;
 
   // Store user data
   const userData: UserData = {

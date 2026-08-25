@@ -24,6 +24,9 @@ export const APP_CONFIG = {
   // Rate limiting
   RATE_LIMIT_DELAY_MS: 150, // 150ms between API calls (~6-7 req/sec)
 
+  // Cloud Tasks mode (false = paginate in-process locally)
+  CLOUD_TASKS_ENABLED: process.env.CLOUD_TASKS_ENABLED === 'true',
+
   // Batch sync settings
   BATCH_SIZE: parseInt(process.env.BATCH_SIZE || '10', 10),
   WEBHOOK_EVENT_LIMIT: 50, // Max events to process in webhook before deferring to batch

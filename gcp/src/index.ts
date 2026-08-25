@@ -80,9 +80,12 @@ if (process.env.NODE_ENV === 'development' || require.main === module) {
     const { startPeriodicSyncJob } = require('./jobs/periodic-sync.job');
     const { startCleanupJob } = require('./jobs/cleanup.job');
 
+    const { startTaskQueueJob } = require('./jobs/task-queue.job');
+
     startChannelRenewalJob();
     startPeriodicSyncJob();
     startCleanupJob();
+    startTaskQueueJob();
 
     logger.info('All background jobs started');
   });

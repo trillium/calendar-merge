@@ -3,8 +3,7 @@ import { google } from 'googleapis';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/app/lib/session';
 import { cookies } from 'next/headers';
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:13013';
+import { backend } from '@/app/lib/backend';
 
 export async function GET(req: NextRequest) {
   try {
@@ -39,21 +38,17 @@ export async function GET(req: NextRequest) {
     const { data: userInfo } = await oauth2.userinfo.get();
     const userId = userInfo.id!;
 
-    // Store tokens via the GCP backend (works with both Firestore and SQLite)
-    const storeRes = await fetch(`${BACKEND_URL}/auth/store-tokens`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    // Store tokens via the backend (works with both Firestore and SQLite)
+    try {
+      await backend.storeTokens({
         userId,
-        email: userInfo.email,
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
+        email: userInfo.email!,
+        accessToken: tokens.access_token!,
+        refreshToken: tokens.refresh_token!,
         tokenExpiry: tokens.expiry_date || Date.now() + 3600 * 1000,
-      }),
-    });
-
-    if (!storeRes.ok) {
-      console.error('Failed to store tokens via backend:', await storeRes.text());
+      });
+    } catch (err) {
+      console.error('Failed to store tokens via backend:', err);
       return NextResponse.redirect(new URL('/?error=token_storage_failed', req.url));
     }
 

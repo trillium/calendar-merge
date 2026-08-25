@@ -26,6 +26,7 @@
     "deploy:functions": "pnpm deploy:handleWebhook && pnpm deploy:renewWatches && pnpm deploy:triggerInitialSync && pnpm deploy:batchSync && pnpm deploy:api",
     "deploy": "pnpm deploy:functions",
     "build:deploy": "pnpm build && pnpm deploy",
+    "deploy:all": "./scripts/build-and-deploy-gcp.sh",
     "deploy:full": "pnpm build && pnpm deploy:functions && pnpm frontend:deploy",
     "frontend:deploy": "./scripts/setup-vercel-env.sh",
     "build:nextjs": "pnpm --filter nextjs build",
@@ -37,7 +38,8 @@
     "monitor": "./scripts/monitor-sync.sh",
     "logs:batchSync": "gcloud functions logs read batchSync --limit=${LIMIT:-50}",
     "logs:webhook": "gcloud functions logs read handleWebhook --limit=${LIMIT:-50}",
-    "cleanup:watches": "pnpm --filter calendar-sync-function exec node cleanup-orphaned-watches.js"
+    "cleanup:watches": "pnpm --filter calendar-sync-function exec node cleanup-orphaned-watches.js",
+    "dev:tunnel": "cloudflared tunnel --url http://localhost:8080"
   },
   "workspaces": [
     "functions/*",
