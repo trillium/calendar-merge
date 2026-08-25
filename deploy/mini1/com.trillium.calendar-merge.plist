@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.trillium.calendar-merge</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/mini1/.bun/bin/bun</string>
+    <string>/Users/mini1/code/calendar-merge-service/gcp/src/index.ts</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key><string>/Users/mini1</string>
+    <key>PATH</key><string>/Users/mini1/.bun/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+  <key>WorkingDirectory</key><string>/Users/mini1/code/calendar-merge-service/gcp</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/Users/mini1/Library/Logs/calendar-merge.out.log</string>
+  <key>StandardErrorPath</key><string>/Users/mini1/Library/Logs/calendar-merge.err.log</string>
+</dict>
+</plist>
