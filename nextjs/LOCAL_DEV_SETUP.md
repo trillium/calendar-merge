@@ -50,11 +50,11 @@ Update `nextjs/.env.local`:
 NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
 
 # Keep existing OAuth credentials (used by backend)
-GOOGLE_CLIENT_ID=262025806347-cib52r7rc0t7t82384k8ifdjcr9qb315.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
+GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
 
-# Session secret
-SESSION_SECRET="7wdOJhrLbLhHP3M+RoohS9VJJVCgeaNK+Tej3zxZm6A="
+# Session secret (generate your own: openssl rand -base64 32)
+SESSION_SECRET="YOUR_SESSION_SECRET_HERE"
 
 # Remove or comment out these (handled by GCP backend):
 # WEBHOOK_URL=...

@@ -157,8 +157,8 @@ SERVICE_ACCOUNT_EMAIL=calendar-sync-sa@calendar-merge-1759477062.iam.gserviceacc
 API_URL=https://calendarsync-xdki5g6bya-uc.a.run.app/api
 WEBHOOK_URL=https://calendarsync-xdki5g6bya-uc.a.run.app/webhook
 BATCH_SYNC_URL=https://calendarsync-xdki5g6bya-uc.a.run.app/batch-sync
-GOOGLE_CLIENT_ID=262025806347-cib52r7rc0t7t82384k8ifdjcr9qb315.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
+GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
 ```
 
 **✅ All environment variables are already configured correctly.**

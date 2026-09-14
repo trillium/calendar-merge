@@ -34,8 +34,8 @@ Everything is already configured! Here's what was set up:
 
 ```bash
 ✅ GCP_PROJECT=calendar-merge-1759477062
-✅ GOOGLE_CLIENT_ID=262025806347-cib52r7rc0t7t82384k8ifdjcr9qb315.apps.googleusercontent.com
-✅ GOOGLE_CLIENT_SECRET=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
+✅ GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com
+✅ GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
 ✅ CORS_ORIGIN=http://localhost:3000,http://localhost:13013
 ✅ PORT=8080
 ```
@@ -44,8 +44,8 @@ Everything is already configured! Here's what was set up:
 
 ```bash
 ✅ NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
-✅ GOOGLE_CLIENT_ID=262025806347-cib52r7rc0t7t82384k8ifdjcr9qb315.apps.googleusercontent.com
-✅ GOOGLE_CLIENT_SECRET=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
+✅ GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com
+✅ GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
 ```
 
 ---
