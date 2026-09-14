@@ -163,8 +163,9 @@ export async function continueBatch(req: Request, res: Response): Promise<void> 
  * @param req.body.eventIds - Array of event IDs to retry
  * @param req.body.attempt - Retry attempt number
  */
-export async function retryFailedEvents(req: Request, res: Response): Promise<void> {
+export async function retryFailedEvents(_req: Request, res: Response): Promise<void> {
   // TODO: Implementation
+  res.status(501).json({ error: 'Not implemented: batch retry' });
 }
 
 /**
@@ -173,8 +174,9 @@ export async function retryFailedEvents(req: Request, res: Response): Promise<vo
  * @route GET /batch/status
  * @param req.query.userId - User ID
  */
-export async function getBatchStatus(req: Request, res: Response): Promise<void> {
+export async function getBatchStatus(_req: Request, res: Response): Promise<void> {
   // TODO: Implementation
+  res.status(501).json({ error: 'Not implemented: batch status' });
 }
 
 /**
@@ -183,8 +185,9 @@ export async function getBatchStatus(req: Request, res: Response): Promise<void>
  * @route POST /batch/cancel
  * @param req.body.userId - User ID
  */
-export async function cancelBatchSync(req: Request, res: Response): Promise<void> {
+export async function cancelBatchSync(_req: Request, res: Response): Promise<void> {
   // TODO: Implementation
+  res.status(501).json({ error: 'Not implemented: batch cancel' });
 }
 
 /**

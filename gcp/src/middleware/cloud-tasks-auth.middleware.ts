@@ -13,11 +13,12 @@ import { Request, Response, NextFunction } from 'express';
  * @middleware
  */
 export function verifyCloudTasksAuth(
-  req: Request,
-  res: Response,
-  next: NextFunction
+  _req: Request,
+  _res: Response,
+  _next: NextFunction
 ): void | Promise<void> {
   // TODO: Implementation
+  throw new Error('verifyCloudTasksAuth not implemented');
 }
 
 /**
@@ -27,6 +28,7 @@ export function verifyCloudTasksAuth(
  */
 export async function validateOIDCToken(authHeader: string): Promise<any> {
   // TODO: Implementation
+  throw new Error(`validateOIDCToken not implemented (header present=${!!authHeader})`);
 }
 
 /**
@@ -36,4 +38,5 @@ export async function validateOIDCToken(authHeader: string): Promise<any> {
  */
 export function isAuthorizedServiceAccount(email: string): boolean {
   // TODO: Implementation
+  throw new Error(`isAuthorizedServiceAccount not implemented (email=${email})`);
 }
