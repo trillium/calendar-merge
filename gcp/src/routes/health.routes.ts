@@ -8,6 +8,9 @@ import { getApiHealth } from '../services/api-health.service';
 
 const router: ExpressRouter = Router();
 
+// Single source of truth for the reported service version (mirrors package.json).
+const SERVICE_VERSION = '1.0.0';
+
 /**
  * GET /health
  * Basic health check endpoint
@@ -15,6 +18,7 @@ const router: ExpressRouter = Router();
 router.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
+    version: SERVICE_VERSION,
     timestamp: new Date().toISOString(),
     service: 'calendar-sync',
   });
@@ -27,7 +31,7 @@ router.get('/health', (_req: Request, res: Response) => {
 router.get('/', (_req: Request, res: Response) => {
   res.status(200).json({
     service: 'Calendar Sync Service',
-    version: '1.0.0',
+    version: SERVICE_VERSION,
     status: 'running',
   });
 });

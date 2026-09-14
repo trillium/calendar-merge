@@ -7,7 +7,6 @@
 import { CloudTasksClient } from '@google-cloud/tasks';
 import { logger } from '../utils';
 import { BatchTaskPayload } from '../types/batch.types';
-import { APP_CONFIG } from '../config';
 import crypto from 'crypto';
 
 const log = logger;
@@ -118,6 +117,9 @@ export async function createRetryTask(
   attempt: number
 ): Promise<string> {
   // TODO: Implementation
+  throw new Error(
+    `createRetryTask not implemented (userId=${userId}, events=${failedEventIds.length}, attempt=${attempt})`
+  );
 }
 
 /**
@@ -126,6 +128,7 @@ export async function createRetryTask(
  */
 export function getQueuePath(): string {
   // TODO: Implementation
+  throw new Error('getQueuePath not implemented');
 }
 
 /**

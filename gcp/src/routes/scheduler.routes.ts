@@ -4,9 +4,10 @@
  */
 
 import { Router } from 'express';
+import type { Router as ExpressRouter } from 'express';
 import { runIncrementalSync, runWatchRenewal } from '../controllers/scheduler.controller';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // POST /scheduler/incremental (every 15 min)
 // Processes calendars with pending changes
