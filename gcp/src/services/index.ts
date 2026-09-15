@@ -37,11 +37,17 @@ export {
 
 // Batch sync service
 export {
-  batchSyncEvents,
+  syncEventsBatchPaginated,
   batchSyncRoundRobin,
   getBatchSyncProgress,
   resetBatchSyncState,
 } from './batch-sync.service';
+
+// Batch API service (Google Calendar Batch)
+export {
+  batchCreateEvents,
+  batchUpdateEvents,
+} from './google-calendar-batch.service';
 
 // Watch channel service
 export {
@@ -55,3 +61,9 @@ export {
   renewExpiringWatchChannels,
   cleanupOrphanedWatches,
 } from './watch-channel.service';
+
+// API health tracking
+export {
+  recordApiCall,
+  getApiHealth,
+} from './api-health.service';

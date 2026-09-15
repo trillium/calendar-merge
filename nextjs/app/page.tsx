@@ -8,12 +8,14 @@ export default function Home() {
     message: string;
     type: string;
   } | null>(null);
+  const [initialUserId, setInitialUserId] = useState<string | null>(null);
 
   // Handle OAuth callback on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const success = params.get("success");
     const error = params.get("error");
+    const userId = params.get("userId");
 
     if (error) {
       let message = "Authentication failed";
@@ -29,11 +31,19 @@ export default function Home() {
       return;
     }
 
-    if (success) {
+    if (success && userId) {
+      localStorage.setItem("calendar_merge_userId", userId);
+      setInitialUserId(userId);
       setAuthStatus({ message: "Successfully connected!", type: "success" });
       window.history.replaceState({}, document.title, "/");
+    } else {
+      // Check localStorage for existing session
+      const storedUserId = localStorage.getItem("calendar_merge_userId");
+      if (storedUserId) {
+        setInitialUserId(storedUserId);
+      }
     }
   }, []);
 
-  return <SetupWizard initialAuthStatus={authStatus} />;
+  return <SetupWizard initialAuthStatus={authStatus} initialUserId={initialUserId} />;
 }

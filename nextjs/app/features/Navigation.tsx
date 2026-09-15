@@ -3,11 +3,17 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../providers/AuthProvider";
+import { useEffect, useState } from "react";
 
 export default function Navigation() {
-  const { isAuthenticated, checkAuth } = useAuth();
+  const { isAuthenticated, isLoading, checkAuth } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   async function handleLogout() {
     try {
@@ -17,6 +23,11 @@ export default function Navigation() {
     } catch (err) {
       console.error("Logout failed:", err);
     }
+  }
+
+  // Prevent hydration mismatch by not rendering until after mount
+  if (!mounted || isLoading) {
+    return <div className="w-full h-[73px]" />;
   }
 
   if (!isAuthenticated) {

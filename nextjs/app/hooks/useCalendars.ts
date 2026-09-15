@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar } from "../lib/calendarUtils";
+import type { Calendar } from "../lib/backend";
 
 export function useCalendars() {
   const [calendars, setCalendars] = useState<Calendar[]>([]);

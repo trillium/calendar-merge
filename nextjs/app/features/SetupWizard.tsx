@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { fetchCalendars } from "../lib/calendarUtils";
+import { backend } from "../lib/backend";
+import type { Calendar } from "../lib/backend";
 import StepConnect from "../ui/StepConnect";
 import StepSelectCalendars from "../ui/StepSelectCalendars";
 import StepChooseTarget from "../ui/StepChooseTarget";
@@ -10,14 +11,19 @@ import { useSetupSync } from "../hooks/useSetupSync";
 
 interface SetupWizardProps {
   initialAuthStatus?: { message: string; type: string } | null;
+  initialUserId?: string | null;
 }
 
-export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
-  // State
-  const [, setUserId] = useState<string | null>(null);
-  const [calendars, setCalendars] = useState<
-    import("../lib/calendarUtils").Calendar[]
-  >([]);
+export default function SetupWizard({ initialAuthStatus, initialUserId }: SetupWizardProps) {
+  // State — check localStorage directly for SSR-safe hydration
+  const [userId, setUserId] = useState<string | null>(() => {
+    if (initialUserId) return initialUserId;
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem("calendar_merge_userId");
+    }
+    return null;
+  });
+  const [calendars, setCalendars] = useState<Calendar[]>([]);
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [targetOption, setTargetOption] = useState<string>("existing");
   const [targetCalendarId, setTargetCalendarId] = useState<string>("");
@@ -44,26 +50,22 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
       },
     });
 
-  // Check session on mount
+  // When userId becomes available (from props or localStorage), advance to step 2
   useEffect(() => {
-    checkSession();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function checkSession() {
-    // Check session status
-    try {
-      const res = await fetch("/api/session");
-      if (res.ok) {
-        const data = await res.json();
-        setUserId(data.userId);
-        setStep(2);
-        await loadCalendars();
-      }
-    } catch (err) {
-      console.error("Session check failed:", err);
+    if (initialUserId && !userId) {
+      setUserId(initialUserId);
     }
-  }
+  }, [initialUserId, userId]);
+
+  useEffect(() => {
+    fetch(`/api/debug?msg=userId-effect&userId=${userId}&step=${step}`);
+    if (userId && step === 1) {
+      fetch(`/api/debug?msg=advancing-to-step2`);
+      setStep(2);
+      loadCalendars(userId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   // Validate setup button
   useEffect(() => {
@@ -108,8 +110,7 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
 
   async function startOAuth() {
     try {
-      const res = await fetch("http://localhost:13013/auth/google");
-      const data = await res.json();
+      const data = await backend.startAuth();
       if (data.authUrl) {
         window.location.href = data.authUrl;
       }
@@ -119,10 +120,14 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
     }
   }
 
-  async function loadCalendars() {
+  async function loadCalendars(uid?: string) {
+    const activeUserId = uid || userId;
+    fetch(`/api/debug?msg=loadCalendars&uid=${activeUserId}`);
+    if (!activeUserId) return;
     setLoadingCalendars(true);
     try {
-      const items = await fetchCalendars();
+      const items = await backend.fetchCalendars(activeUserId);
+      fetch(`/api/debug?msg=calendars-loaded&count=${items?.length}`);
       setCalendars(items);
       setLoadingCalendars(false);
     } catch (error: unknown) {
@@ -130,6 +135,7 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
       if (error instanceof Error) {
         message += ": " + error.message;
       }
+      fetch(`/api/debug?msg=calendars-error&error=${encodeURIComponent(message)}`);
       setAuthStatus({
         message,
         type: "error",
@@ -140,12 +146,16 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
 
   function handleCalendarSelection(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
+    const cal = calendars.find(c => c.id === value);
+    const action = e.target.checked ? "selected" : "deselected";
+    fetch(`/api/debug?msg=source-calendar-${action}&id=${encodeURIComponent(value)}&name=${encodeURIComponent(cal?.summary || "")}`);
     setSelectedSources((prev) =>
       e.target.checked ? [...prev, value] : prev.filter((id) => id !== value)
     );
   }
 
   function handleTargetOptionChange(e: React.ChangeEvent<HTMLInputElement>) {
+    fetch(`/api/debug?msg=target-option&value=${e.target.value}`);
     setTargetOption(e.target.value);
     if (e.target.value === "existing") {
       setNewCalendarName("");
@@ -155,6 +165,8 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
   }
 
   function handleTargetSelection(e: React.ChangeEvent<HTMLSelectElement>) {
+    const cal = calendars.find(c => c.id === e.target.value);
+    fetch(`/api/debug?msg=target-calendar-selected&id=${encodeURIComponent(e.target.value)}&name=${encodeURIComponent(cal?.summary || "")}`);
     setTargetCalendarId(e.target.value);
   }
 
@@ -164,10 +176,14 @@ export default function SetupWizard({ initialAuthStatus }: SetupWizardProps) {
 
   // Step navigation handlers
   function handleNext() {
-    setStep((prev) => Math.min(prev + 1, 3));
+    const next = Math.min(step + 1, 3);
+    fetch(`/api/debug?msg=step-nav&from=${step}&to=${next}&sources=${selectedSources.length}`);
+    setStep(next);
   }
   function handleBack() {
-    setStep((prev) => Math.max(prev - 1, 1));
+    const prev = Math.max(step - 1, 1);
+    fetch(`/api/debug?msg=step-nav&from=${step}&to=${prev}`);
+    setStep(prev);
   }
 
   // UI rendering

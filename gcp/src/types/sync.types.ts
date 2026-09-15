@@ -67,3 +67,35 @@ export interface EventHandlingConfig {
   marker?: string;
   condition?: (event: any) => boolean;
 }
+
+/**
+ * Batch API operation types
+ */
+export interface BatchOperation {
+  method: 'POST' | 'PATCH' | 'DELETE';
+  eventId?: string; // For updates/deletes
+  eventData?: any; // For creates/updates
+  sourceEventId: string; // To track back to source
+  sourceCalendarId: string;
+}
+
+/**
+ * Result of a single batch operation
+ */
+export interface BatchOperationResult {
+  sourceEventId: string;
+  sourceCalendarId: string;
+  success: boolean;
+  targetEventId?: string;
+  statusCode?: number;
+  error?: string;
+}
+
+/**
+ * Result of batch sync
+ */
+export interface BatchSyncResult {
+  successful: number;
+  failed: number;
+  results: BatchOperationResult[];
+}

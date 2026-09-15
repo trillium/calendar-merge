@@ -4,8 +4,12 @@
 
 import { Router } from 'express';
 import type { Router as ExpressRouter, Request, Response } from 'express';
+import { getApiHealth } from '../services/api-health.service';
 
 const router: ExpressRouter = Router();
+
+// Single source of truth for the reported service version (mirrors package.json).
+const SERVICE_VERSION = '1.0.0';
 
 /**
  * GET /health
@@ -14,6 +18,7 @@ const router: ExpressRouter = Router();
 router.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
+    version: SERVICE_VERSION,
     timestamp: new Date().toISOString(),
     service: 'calendar-sync',
   });
@@ -26,9 +31,22 @@ router.get('/health', (_req: Request, res: Response) => {
 router.get('/', (_req: Request, res: Response) => {
   res.status(200).json({
     service: 'Calendar Sync Service',
-    version: '1.0.0',
+    version: SERVICE_VERSION,
     status: 'running',
   });
+});
+
+/**
+ * GET /api/health
+ * API rate limit health / temperature
+ */
+router.get('/api/health', async (_req: Request, res: Response) => {
+  try {
+    const health = await getApiHealth();
+    res.status(200).json(health);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get API health' });
+  }
 });
 
 export default router;
