@@ -45,8 +45,9 @@ BATCH_API_SIZE=50
 GOOGLE_CLIENT_ID=<from 1Password / local .env>
 GOOGLE_CLIENT_SECRET=<from 1Password / local .env>
 CLOUD_FUNCTION_URL=https://mini1.hippo-tilapia.ts.net
-GOOGLE_REDIRECT_URI=https://mini1.hippo-tilapia.ts.net/auth/callback
+GOOGLE_REDIRECT_URI=https://mini1.hippo-tilapia.ts.net/auth/google/callback
 CORS_ORIGIN=https://mini1.hippo-tilapia.ts.net
+FRONTEND_URL=<dashboard URL that receives the post-OAuth redirect>
 ```
 
 ### 5. Copy credential files
@@ -73,7 +74,7 @@ launchctl load ~/Library/LaunchAgents/com.trillium.calendar-merge.plist
 
 ```bash
 curl https://mini1.hippo-tilapia.ts.net/health
-# → {"status":"ok", ...}
+# → {"status":"ok","version":"...","service":"calendar-sync",...}
 ```
 
 ## Day-to-day operations
