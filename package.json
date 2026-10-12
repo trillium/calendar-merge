@@ -7,7 +7,7 @@
     "node": "22"
   },
   "scripts": {
-    "build": "pnpm --filter calendar-sync-function run gcp-build",
+    "build": "pnpm --filter nextjs build",
     "dev": "concurrently -n server,client -c cyan,magenta \"pnpm dev:server\" \"pnpm dev:client\"",
     "dev:server": "pnpm --filter calendar-sync-function run dev",
     "dev:client": "pnpm --filter calendar-merge-web run dev",
