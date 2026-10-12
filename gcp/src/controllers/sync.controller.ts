@@ -14,6 +14,7 @@ import {
 } from '../services';
 import { logger } from '../utils';
 import { db } from '../db';
+import { internalAuthHeaders } from '../middleware/api-key.middleware';
 import { WatchData } from '../types';
 
 const log = logger;
@@ -44,7 +45,7 @@ export async function triggerBatchSync(req: Request, res: Response): Promise<voi
         // Fire and forget - don't await to avoid blocking this response
         fetch(triggerUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...internalAuthHeaders() },
           body: JSON.stringify({ userId }),
         }).catch(err => {
           log.error('Failed to trigger next batch', err, { userId });

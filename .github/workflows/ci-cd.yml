@@ -23,6 +23,8 @@ jobs:
         working-directory: gcp
       - run: bun test src/services/task-queue-cascade.test.ts
         working-directory: gcp
+      - run: bun test src/app-auth.test.ts
+        working-directory: gcp
 
   gcp-vitest:
     name: gcp vitest

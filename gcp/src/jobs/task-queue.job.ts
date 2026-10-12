@@ -11,6 +11,7 @@
 import { schedule, type ScheduledTask } from 'node-cron';
 import { logger } from '../utils';
 import { APP_CONFIG } from '../config';
+import { internalAuthHeaders } from '../middleware/api-key.middleware';
 
 const log = logger;
 const MAX_ATTEMPTS = 3;
@@ -52,7 +53,7 @@ async function processPendingTasks(): Promise<void> {
         const url = `http://localhost:${APP_CONFIG.PORT}${endpoint}`;
         const res = await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...internalAuthHeaders() },
           body: JSON.stringify(payload),
         });
 
