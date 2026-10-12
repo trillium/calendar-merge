@@ -15,6 +15,7 @@ export default defineConfig({
         '**/*.d.ts'
       ]
     },
+    exclude: ['**/node_modules/**', '**/dist/**', 'archive/**'],
     mockReset: true,
     restoreMocks: true,
   },

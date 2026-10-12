@@ -1,91 +1,64 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
-    branches: ["**"]
+    branches: [main]
+    paths: ["gcp/**", "nextjs/**", "pnpm-lock.yaml", ".github/workflows/ci-cd.yml"]
   pull_request:
     branches: [main]
+    paths: ["gcp/**", "nextjs/**", "pnpm-lock.yaml", ".github/workflows/ci-cd.yml"]
   workflow_dispatch:
 
-env:
-  NODE_VERSION: "20"
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: ${{ secrets.GCP_REGION }}
-  SERVICE_ACCOUNT_EMAIL: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
-
 jobs:
-  # Detect what changed
-  changes:
-    name: Detect Changes
+  gcp-bun-test:
+    name: gcp bun test
     runs-on: ubuntu-latest
-    outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      frontend: ${{ steps.filter.outputs.frontend }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+        working-directory: gcp
+      - run: bun test src/db/sqlite.test.ts src/services/task-queue-cascade.test.ts
+        working-directory: gcp
 
-      - name: Check for file changes
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            backend:
-              - 'functions/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-            frontend:
-              - 'web/**'
-
-  # Run tests on backend changes
-  test:
-    name: Run Tests
+  gcp-vitest:
+    name: gcp vitest
     runs-on: ubuntu-latest
-    needs: changes
-    if: needs.changes.outputs.backend == 'true'
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          version: 10
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest run
+        working-directory: gcp
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+  gcp-tsc:
+    name: gcp tsc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec tsc --noEmit
+        working-directory: gcp
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run tests
-        run: pnpm test
-
-      - name: Build
-        run: pnpm build
-
-  # Deploy backend using reusable workflow
-  deploy-backend:
-    name: Deploy Backend
-    needs: [changes, test]
-    if: |
-      github.ref == 'refs/heads/main' &&
-      github.event_name == 'push' &&
-      needs.changes.outputs.backend == 'true'
-    uses: ./.github/workflows/deploy-backend.yml
-    secrets: inherit
-
-  # Deploy frontend using reusable workflow
-  deploy-frontend:
-    name: Deploy Frontend
-    needs: [changes, deploy-backend]
-    if: |
-      github.ref == 'refs/heads/main' &&
-      github.event_name == 'push' &&
-      (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true')
-    uses: ./.github/workflows/deploy-frontend.yml
-    secrets: inherit
+  nextjs-build:
+    name: nextjs build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        working-directory: nextjs
