@@ -53,3 +53,4 @@ client_secret.json
 .claude/
 .beads/
 .logs/
+.claude/settings.local.json
