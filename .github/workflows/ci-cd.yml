@@ -18,7 +18,10 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
         working-directory: gcp
-      - run: bun test src/db/sqlite.test.ts src/services/task-queue-cascade.test.ts
+      # Separate processes: task-queue-cascade mock.module()s ../db, which leaks into sqlite.test.ts
+      - run: bun test src/db/sqlite.test.ts
+        working-directory: gcp
+      - run: bun test src/services/task-queue-cascade.test.ts
         working-directory: gcp
 
   gcp-vitest:
