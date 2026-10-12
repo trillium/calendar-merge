@@ -11,7 +11,7 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import { logger } from './utils';
 import { APP_CONFIG, validateAllConfig } from './config';
-import { errorHandler, notFoundHandler } from './middleware';
+import { errorHandler, notFoundHandler, requireApiKey } from './middleware';
 import routes from './routes';
 
 // Validate configuration on startup
@@ -56,6 +56,9 @@ app.use((req, _res, next) => {
   });
   next();
 });
+
+// Require the API key on everything except the explicit public allowlist
+app.use(requireApiKey);
 
 // Mount all routes
 app.use('/', routes);

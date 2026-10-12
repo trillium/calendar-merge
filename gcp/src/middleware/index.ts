@@ -8,6 +8,8 @@ export {
   validateUserId,
 } from './auth.middleware';
 
+export { requireApiKey, internalAuthHeaders } from './api-key.middleware';
+
 export {
   verifyWebhook,
   handleSyncState,

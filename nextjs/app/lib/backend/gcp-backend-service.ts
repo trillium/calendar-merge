@@ -19,8 +19,17 @@ import type {
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:13013';
 
 /**
+ * Bearer credential for the backend. Server-side only: BACKEND_API_TOKEN is
+ * deliberately not NEXT_PUBLIC_, so it never reaches the browser bundle.
+ */
+function authHeaders(): Record<string, string> {
+  const token = process.env.BACKEND_API_TOKEN;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+/**
  * Low-level fetch wrapper for the GCP backend.
- * Adds Content-Type, parses JSON, throws on non-2xx.
+ * Adds Content-Type and Bearer auth, parses JSON, throws on non-2xx.
  */
 async function callBackend<T = unknown>(
   endpoint: string,
@@ -32,6 +41,7 @@ async function callBackend<T = unknown>(
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders(),
       ...options.headers,
     },
   });
@@ -165,7 +175,7 @@ export function createGcpBackendService(): BackendService {
     fetchCalendars: async (userId: string) => {
       const url = `${BACKEND_URL}/calendars/list?userId=${encodeURIComponent(userId)}`;
       try {
-        const response = await fetch(url);
+        const response = await fetch(url, { headers: authHeaders() });
         if (!response.ok) {
           const text = await response.text().catch(() => '');
           throw new Error(`Backend ${response.status}: ${text}`);

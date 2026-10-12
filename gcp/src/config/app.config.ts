@@ -68,6 +68,14 @@ export function validateAppConfig(): void {
     }
   }
 
+  // Shared secret guarding the HTTP API; without it every protected route is refused
+  if (!process.env.API_AUTH_TOKEN) {
+    if (APP_CONFIG.NODE_ENV === 'production') {
+      throw new Error('Missing required environment variable: API_AUTH_TOKEN');
+    }
+    console.warn('WARNING: API_AUTH_TOKEN is not set. All protected endpoints will return 503.');
+  }
+
   // Warn about CLOUD_FUNCTION_URL in production
   if (APP_CONFIG.NODE_ENV === 'production' && !APP_CONFIG.CLOUD_FUNCTION_URL) {
     console.warn('WARNING: CLOUD_FUNCTION_URL is not set. Watch channels will not work.');

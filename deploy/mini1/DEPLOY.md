@@ -48,7 +48,10 @@ CLOUD_FUNCTION_URL=https://mini1.hippo-tilapia.ts.net
 GOOGLE_REDIRECT_URI=https://mini1.hippo-tilapia.ts.net/auth/google/callback
 CORS_ORIGIN=https://mini1.hippo-tilapia.ts.net
 FRONTEND_URL=<dashboard URL that receives the post-OAuth redirect>
+API_AUTH_TOKEN=<generate with: openssl rand -hex 32>
 ```
+
+`API_AUTH_TOKEN` is required in production (the server refuses to start without it). Every endpoint except `GET /health`, `GET /`, `POST /webhook` (Google push notifications) and the OAuth callbacks requires `Authorization: Bearer <API_AUTH_TOKEN>`. Set the same value as `BACKEND_API_TOKEN` (server-side, no `NEXT_PUBLIC_` prefix) in the Next.js environment. Keep it out of the repository.
 
 ### 5. Copy credential files
 
