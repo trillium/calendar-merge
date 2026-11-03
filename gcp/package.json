@@ -18,7 +18,8 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
     "clean": "rm -rf dist",
-    "status": "bun src/cli/status.ts"
+    "status": "bun src/cli/status.ts",
+    "booking-blocks": "bun src/cli/booking-blocks.ts"
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.10.0",

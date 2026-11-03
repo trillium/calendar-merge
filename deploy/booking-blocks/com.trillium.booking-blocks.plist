@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.trillium.booking-blocks</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Users/mini0/code/calendar-merge-service/deploy/booking-blocks/run-watch.sh</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>BOOKING_BLOCKS_ACCOUNT</key><string>you@example.com</string>
+    <key>HOME</key><string>/Users/mini0</string>
+    <key>PATH</key><string>/Users/mini0/.bun/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+  <!-- every 15 minutes; each run is a read-only dry run -->
+  <key>StartInterval</key><integer>900</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/Users/mini0/Library/Logs/booking-blocks.out.log</string>
+  <key>StandardErrorPath</key><string>/Users/mini0/Library/Logs/booking-blocks.err.log</string>
+</dict>
+</plist>
